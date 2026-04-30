@@ -8,10 +8,78 @@ An AI-powered SaaS tool to analyze marketing campaign performance and generate a
 
 * Next.js (App Router)
 * Tailwind CSS
-* PostgreSQL (Neon)
+* PostgreSQL (Neon recommended)
 * Prisma ORM
 * OpenAI API
 * Clerk (Authentication: Email, Google, Apple)
+
+---
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repo-url>
+cd ai-campaign-tracker
+```
+
+---
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+### 3. Setup environment variables
+
+Create a `.env` file in the root:
+
+```env
+# Database (PostgreSQL - Neon or any provider)
+DATABASE_URL=
+
+# Clerk Auth
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+
+# OpenAI
+OPENAI_API_KEY=
+```
+
+> The app uses PostgreSQL. Neon is recommended for serverless setups, but any PostgreSQL provider will work.
+
+---
+
+### 4. Setup database (Prisma)
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+(Optional: open Prisma Studio)
+
+```bash
+npx prisma studio
+```
+
+---
+
+### 5. Run the development server
+
+```bash
+npm run dev
+```
+
+App will be available at:
+
+```
+http://localhost:3000
+```
 
 ---
 

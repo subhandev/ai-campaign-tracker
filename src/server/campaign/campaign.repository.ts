@@ -13,3 +13,11 @@ export async function createCampaignRepo(data: {
     },
   })
 }
+
+export async function getCampaignsRepo() {
+  return prisma.campaign.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  })
+}

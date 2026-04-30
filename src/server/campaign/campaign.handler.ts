@@ -17,3 +17,21 @@ export async function handleCreateCampaign(body: any) {
     }
   }
 }
+
+import { getCampaignsService } from './campaign.service'
+
+export async function handleGetCampaigns() {
+  try {
+    const campaigns = await getCampaignsService()
+
+    return {
+      status: 200,
+      body: campaigns,
+    }
+  } catch (error: any) {
+    return {
+      status: 500,
+      body: { error: 'Failed to fetch campaigns' },
+    }
+  }
+}

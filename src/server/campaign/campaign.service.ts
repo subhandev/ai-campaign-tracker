@@ -10,3 +10,9 @@ export async function createCampaignService(data: any) {
 
   return createCampaignRepo(data)
 }
+
+import { getCampaignsRepo } from './campaign.repository'
+
+export async function getCampaignsService() {
+  return getCampaignsRepo()
+}

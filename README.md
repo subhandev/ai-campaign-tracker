@@ -8,10 +8,17 @@ An AI-powered SaaS tool to analyze marketing campaign performance and generate a
 
 * Next.js (App Router)
 * Tailwind CSS
+* shadcn/ui
 * PostgreSQL (Neon recommended)
 * Prisma ORM
 * OpenAI API
 * Clerk (Authentication: Email, Google, Apple)
+
+---
+
+## UI Components
+
+This project uses **shadcn/ui** components located under `src/components/ui/`.
 
 ---
 

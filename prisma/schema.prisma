@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  platform    String   // Meta, Google, etc.
+  status      String   // active, paused
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+
+  metrics     Metric[]
+  insights    Insight[]
+}
+
+model Metric {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+
+  impressions Int
+  clicks      Int
+  spend       Float
+  conversions Int?
+
+  date        DateTime
+}
+
+model Insight {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+
+  type        String   // performance, recommendation, anomaly
+  content     String   // AI-generated text
+  score       Float?   // optional confidence
+
+  createdAt   DateTime @default(now())
+}

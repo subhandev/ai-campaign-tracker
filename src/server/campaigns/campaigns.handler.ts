@@ -1,4 +1,4 @@
-import { createCampaignService } from './campaign.service'
+import { createCampaignService } from './campaigns.service'
 
 export async function handleCreateCampaign(body: any) {
   try {
@@ -18,7 +18,7 @@ export async function handleCreateCampaign(body: any) {
   }
 }
 
-import { getCampaignsService } from './campaign.service'
+import { getCampaignsService } from './campaigns.service'
 
 export async function handleGetCampaigns() {
   try {

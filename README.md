@@ -2,6 +2,8 @@ AI Campaign Tracker
 
 An AI-powered SaaS tool to analyze marketing campaign performance and generate actionable insights.
 
+---
+
 ## Tech Stack
 
 * Next.js (App Router)
@@ -9,6 +11,9 @@ An AI-powered SaaS tool to analyze marketing campaign performance and generate a
 * PostgreSQL (Neon)
 * Prisma ORM
 * OpenAI API
+* Clerk (Authentication: Email, Google, Apple)
+
+---
 
 ## Features (Planned)
 
@@ -17,9 +22,106 @@ An AI-powered SaaS tool to analyze marketing campaign performance and generate a
 * Interactive dashboard
 * Scalable backend architecture
 
+---
+
 ## Architecture
 
-The application follows a feature-based frontend structure and a layered backend architecture (services, repositories, API separation) to ensure scalability and maintainability.
+The application follows a **feature-based frontend architecture** and a **layered backend architecture**, with clear separation between UI, business logic, and data access.
+
+### Key Principles
+
+* `app/` → Routing (Next.js App Router)
+* `features/` → Frontend domain logic (UI, hooks, API calls)
+* `server/` → Backend domain logic (services, repositories)
+* `app/api/` → API layer (bridge between frontend & backend)
+* Route groups → Structure the app by product domains (`(auth)` and `(app)`)
+
+---
+
+## Folder Structure
+
+```bash
+src/
+│
+├── app/                                # Next.js App Router
+│
+│   ├── (auth)/                         # 🔐 Authentication routes
+│   │   ├── sign-in/
+│   │   │   └── [[...sign-in]]/page.tsx
+│   │   ├── sign-up/
+│   │   │   └── [[...sign-up]]/page.tsx
+│   │   └── layout.tsx                  # Optional auth layout
+│   │
+│   ├── (app)/                          # 🚀 Main application (protected)
+│   │   ├── layout.tsx                  # Uses AppShell
+│   │   ├── page.tsx                    # Dashboard
+│   │   │
+│   │   ├── campaigns/
+│   │   │   └── page.tsx
+│   │   │
+│   │   └── settings/
+│   │       └── page.tsx
+│   │
+│   ├── api/
+│   │   └── campaigns/
+│   │       └── route.ts                # API endpoint
+│   │
+│   ├── layout.tsx                      # Root layout (ClerkProvider)
+│   └── globals.css
+│
+├── features/                           # Frontend domain modules
+│
+│   ├── app-shell/                      # App UI shell
+│   │   ├── AppShell.tsx                # Sidebar + header wrapper
+│   │   └── components/
+│   │       ├── Sidebar.tsx
+│   │       ├── Header.tsx
+│   │       └── SidebarToggle.tsx
+│   │
+│   └── campaigns/                      # Campaign feature (frontend)
+│       ├── components/
+│       │   └── CampaignTable.tsx
+│       │
+│       ├── api/
+│       │   └── campaigns.api.ts
+│       │
+│       ├── hooks/
+│       │   └── useCampaigns.ts
+│       │
+│       ├── types.ts
+│       └── index.ts
+│
+├── server/                             # Backend domain modules
+│   ├── db/
+│   │   └── client.ts                   # Prisma client
+│   │
+│   └── campaigns/
+│       ├── campaigns.repository.ts
+│       ├── campaigns.service.ts
+│       └── campaigns.handler.ts
+│
+├── components/                         # Shared UI (shadcn)
+│   └── ui/
+│       ├── button.tsx
+│       ├── input.tsx
+│       └── ...
+│
+├── lib/                                # Shared utilities
+│
+├── types/                              # Global shared types
+│
+└── middleware.ts                       # Auth protection (Clerk)
+```
+
+---
+
+## Routing Strategy
+
+* `(auth)` → Public authentication routes (sign-in, sign-up)
+* `(app)` → Main product (protected via middleware)
+* Middleware ensures all non-auth routes require authentication
+
+---
 
 ## Status
 

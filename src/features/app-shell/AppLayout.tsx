@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Sidebar } from './Sidebar'
-import { Header } from './Header'
-import {SidebarToggle } from './SidebarToggle'
+import { Sidebar } from './components/Sidebar'
+import { Header } from './components/Header'
+import {SidebarToggle } from './components/SidebarToggle'
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)

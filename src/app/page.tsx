@@ -1,4 +1,4 @@
-import { AppLayout } from '@/features/layout/components/AppLayout'
+import { AppLayout } from '@/features/app-shell/AppLayout'
 import { CampaignTable } from '@/features/campaigns/components/CampaignTable'
 
 export default function Home() {

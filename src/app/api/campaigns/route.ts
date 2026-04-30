@@ -1,7 +1,7 @@
 import {
   handleCreateCampaign,
   handleGetCampaigns,
-} from '@/server/campaign/campaign.handler'
+} from '@/server/campaigns/campaigns.handler'
 
 export async function GET() {
   const result = await handleGetCampaigns()

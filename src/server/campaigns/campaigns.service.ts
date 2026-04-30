@@ -1,4 +1,4 @@
-import { createCampaignRepo } from './campaign.repository'
+import { createCampaignRepo } from './campaigns.repository'
 
 export async function createCampaignService(data: any) {
   // Basic validation
@@ -11,7 +11,7 @@ export async function createCampaignService(data: any) {
   return createCampaignRepo(data)
 }
 
-import { getCampaignsRepo } from './campaign.repository'
+import { getCampaignsRepo } from './campaigns.repository'
 
 export async function getCampaignsService() {
   return getCampaignsRepo()

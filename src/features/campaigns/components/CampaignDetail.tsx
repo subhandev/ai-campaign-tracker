@@ -40,7 +40,7 @@ interface Insight {
 }
 
 interface CampaignDetailProps {
-  campaign: Campaign & { insights?: Insight[] };
+  campaign: Campaign;
 }
 
 const statusStyles: Record<CampaignStatus, string> = {

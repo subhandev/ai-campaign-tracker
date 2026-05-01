@@ -58,7 +58,7 @@ src/features/<domain>/
 - `src/app/(auth)/` — public routes (sign-in, sign-up) via Clerk's catch-all pages
 - `src/app/(dashboard)/` — protected app routes; layout handles user-DB sync on first login
 - `src/app/api/` — API routes, protected implicitly by middleware
-- `src/middleware.ts` — redirects unauthenticated users to `/sign-in` for all non-public routes
+- `middleware.ts` (project root, NOT inside `src/`) — Clerk auth protection; Next.js 16 + Turbopack requires this at the root even when using a `src/` directory
 
 ### App shell
 
@@ -115,7 +115,7 @@ src/
 ├── lib/
 │   └── utils.ts                            # cn() helper (clsx + tailwind-merge)
 │
-├── middleware.ts                            # Clerk auth — redirects unauthenticated to /sign-in
+├── middleware.ts                            # Clerk auth — must stay at project root (not src/)
 │
 └── server/                                 # Backend domain modules
     ├── campaigns/

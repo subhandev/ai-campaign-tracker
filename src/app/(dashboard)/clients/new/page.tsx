@@ -1,12 +1,10 @@
-// src/app/(dashboard)/clients/new/page.tsx
-
-import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { CreateClientForm } from "@/features/clients/components/CreateClientForm";
 
 export default function NewClientPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div className="space-y-1">
         <Link

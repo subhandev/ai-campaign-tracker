@@ -15,7 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useClientMutations } from "@/features/clients/hooks/useClients";
-import { createClientSchema, CreateClientSchema } from "@/features/clients/schemas";
+import {
+  createClientSchema,
+  CreateClientSchema,
+} from "@/features/clients/schemas";
 
 const INDUSTRIES = [
   "SaaS",
@@ -73,15 +76,19 @@ export function CreateClientForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-5">
-          <div className="space-y-1.5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+        {/* Form — no card, sits on muted bg */}
+        <div className="lg:col-span-2 space-y-6">
+
+          {/* Client Name */}
+          <div className="space-y-2">
             <Label htmlFor="name">
-              Client Name <span className="text-destructive">*</span>
+              Client Name <span className="text-destructive normal-case tracking-normal">*</span>
             </Label>
             <Input
               id="name"
-              placeholder="Enter client name"
+              placeholder="e.g. John Smith or StartupX"
               {...register("name")}
             />
             {errors.name && (
@@ -89,11 +96,12 @@ export function CreateClientForm() {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="company">Company / Brand (optional)</Label>
+          {/* Company */}
+          <div className="space-y-2">
+            <Label htmlFor="company">Company / Brand</Label>
             <Input
               id="company"
-              placeholder="Enter company or brand name"
+              placeholder="e.g. Acme Corp"
               {...register("company")}
             />
             {errors.company && (
@@ -101,64 +109,67 @@ export function CreateClientForm() {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Industry (optional)</Label>
-            <Select
-              value={watched.industry}
-              onValueChange={(val) =>
-                setValue("industry", val, { shouldValidate: true })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select industry" />
-              </SelectTrigger>
-              <SelectContent>
-                {INDUSTRIES.map((industry) => (
-                  <SelectItem key={industry} value={industry}>
-                    {industry}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Industry + Email — side by side */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Industry</Label>
+              <Select
+                value={watched.industry}
+                onValueChange={(val) =>
+                  setValue("industry", val, { shouldValidate: true })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDUSTRIES.map((industry) => (
+                    <SelectItem key={industry} value={industry}>
+                      {industry}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="e.g. hello@company.com"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email.message}</p>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email (optional)</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter email address"
-              {...register("email")}
-            />
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="notes">Notes (optional)</Label>
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
-              placeholder="Add any notes about the client..."
+              placeholder="Any context about this client, goals, or campaign notes..."
               rows={4}
+              className="resize-none"
               {...register("notes")}
             />
             <div className="flex items-center justify-between">
               {errors.notes ? (
                 <p className="text-xs text-destructive">{errors.notes.message}</p>
-              ) : (
-                <span />
-              )}
-              <p className="text-xs text-muted-foreground text-right">
+              ) : <span />}
+              <p className="text-xs text-muted-foreground">
                 {watched.notes?.length ?? 0}/500
               </p>
             </div>
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {/* API Error */}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
+          {/* Actions */}
           <div className="flex items-center gap-3 pt-2">
             <Button
               type="button"
@@ -168,49 +179,76 @@ export function CreateClientForm() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading || !watched.name?.trim()}
+            >
               {loading ? "Creating..." : "Create Client"}
             </Button>
           </div>
         </div>
 
-        <div className="hidden lg:block">
-          <p className="text-sm font-medium mb-4">Client Preview</p>
-          <div className="rounded-xl border bg-muted/30 p-6 space-y-4">
-            <div className="flex flex-col items-center gap-2">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-xl font-semibold">
-                {initials}
-              </div>
-              <span className="font-medium text-sm">
-                {watched.name || "Client Name"}
-              </span>
-              {watched.industry && (
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  {watched.industry}
-                </span>
-              )}
-            </div>
+        {/* Preview Panel */}
+        <div className="hidden lg:flex flex-col gap-3">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Preview
+          </p>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Company / Brand</span>
-                <span>{watched.company || "—"}</span>
+          <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+            {/* Top accent strip */}
+            <div className="h-1.5 w-full bg-primary/60" />
+
+            <div className="p-5 space-y-4">
+              {/* Avatar + Name */}
+              <div className="flex flex-col items-center gap-2 pb-4 border-b border-border">
+                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-base font-semibold">
+                  {initials}
+                </div>
+                <div className="text-center space-y-1">
+                  <p className="text-sm font-semibold">
+                    {watched.name || "Client Name"}
+                  </p>
+                  {watched.industry && (
+                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full inline-block">
+                      {watched.industry}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Email</span>
-                <span className="truncate max-w-[140px]">
-                  {watched.email || "—"}
-                </span>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-muted-foreground">Notes</span>
-                <span className="text-xs">
-                  {watched.notes || "No notes added"}
-                </span>
+
+              {/* Details */}
+              <div className="space-y-3">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                    Company
+                  </p>
+                  <p className="text-sm font-medium">
+                    {watched.company || "—"}
+                  </p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                    Email
+                  </p>
+                  <p className="text-sm font-medium truncate">
+                    {watched.email || "—"}
+                  </p>
+                </div>
+                {watched.notes && (
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                      Notes
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                      {watched.notes}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
+
       </div>
     </form>
   );

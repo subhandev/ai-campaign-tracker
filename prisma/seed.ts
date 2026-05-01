@@ -1,6 +1,13 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DIRECT_DATABASE_URL,
+    },
+  },
+});
 
 async function main() {
   // Get the workspace that was auto-created on login

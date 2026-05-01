@@ -170,10 +170,11 @@ export function CreateClientForm() {
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           {/* Actions */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-4">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
+              size="lg"
               onClick={() => router.push("/clients")}
               disabled={loading}
             >
@@ -181,6 +182,7 @@ export function CreateClientForm() {
             </Button>
             <Button
               type="submit"
+              size="lg"
               disabled={loading || !watched.name?.trim()}
             >
               {loading ? "Creating..." : "Create Client"}
@@ -198,18 +200,18 @@ export function CreateClientForm() {
             {/* Top accent strip */}
             <div className="h-1.5 w-full bg-primary/60" />
 
-            <div className="p-5 space-y-4">
+            <div className="p-6 space-y-5">
               {/* Avatar + Name */}
-              <div className="flex flex-col items-center gap-2 pb-4 border-b border-border">
-                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-base font-semibold">
+              <div className="flex flex-col items-center gap-3 pb-5 border-b border-border">
+                <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
                   {initials}
                 </div>
-                <div className="text-center space-y-1">
-                  <p className="text-sm font-semibold">
+                <div className="text-center space-y-1.5">
+                  <p className="text-base font-bold">
                     {watched.name || "Client Name"}
                   </p>
                   {watched.industry && (
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full inline-block">
+                    <span className="text-xs bg-muted text-muted-foreground px-2.5 py-1 rounded-full inline-block font-medium">
                       {watched.industry}
                     </span>
                   )}
@@ -217,26 +219,26 @@ export function CreateClientForm() {
               </div>
 
               {/* Details */}
-              <div className="space-y-3">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     Company
                   </p>
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-semibold">
                     {watched.company || "—"}
                   </p>
                 </div>
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     Email
                   </p>
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-sm font-semibold truncate">
                     {watched.email || "—"}
                   </p>
                 </div>
                 {watched.notes && (
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       Notes
                     </p>
                     <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">

@@ -4,24 +4,28 @@ import { CreateClientForm } from "@/features/clients/components/CreateClientForm
 
 export default function NewClientPage() {
   return (
-    <div className="space-y-6 max-w-5xl">
-      {/* Header */}
-      <div className="space-y-1">
-        <Link
-          href="/clients"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-fit"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Clients
-        </Link>
-        <h1 className="text-xl font-semibold">Create Client</h1>
+    <div className="space-y-8 max-w-5xl">
+      {/* Back Button */}
+      <Link
+        href="/clients"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group w-fit"
+      >
+        <span className="flex items-center justify-center h-7 w-7 rounded-md border border-border bg-card group-hover:bg-muted transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" />
+        </span>
+        Back to Clients
+      </Link>
+
+      {/* Heading */}
+      <div className="space-y-1.5">
+        <h1 className="text-2xl font-semibold tracking-tight">Create Client</h1>
         <p className="text-sm text-muted-foreground">
-          Add a new client to start managing their campaigns
+          Add a new client to start managing their campaigns and track results.
         </p>
       </div>
 
       {/* Form */}
       <CreateClientForm />
     </div>
-  );
+  )
 }

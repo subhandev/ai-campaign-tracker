@@ -1,3 +1,5 @@
+// src/features/campaigns/schemas.ts
+
 import { z } from "zod";
 
 export const createCampaignSchema = z.object({

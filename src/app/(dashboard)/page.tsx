@@ -1,5 +1,5 @@
-import { CampaignTable } from '@/features/campaigns'
+import { redirect } from 'next/navigation'
 
-export default function DashboardPage() {
-  return <CampaignTable />
+export default function RootPage() {
+  redirect('/dashboard')
 }

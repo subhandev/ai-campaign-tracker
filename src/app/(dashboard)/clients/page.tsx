@@ -1,5 +1,3 @@
-// src/app/(dashboard)/clients/page.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -9,11 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientTable } from "@/features/clients/components/ClientTable";
-import { useClients, useClientMutations } from "@/features/clients/hooks/useClients";
+import {
+  useClients,
+  useClientMutations,
+} from "@/features/clients/hooks/useClients";
 
 export default function ClientsPage() {
   const router = useRouter();
-  const { clients, total, loading, error, refresh } = useClients();
+  const { clients, loading, error, refresh } = useClients();
   const { remove } = useClientMutations();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
@@ -43,13 +44,14 @@ export default function ClientsPage() {
   if (!loading && clients.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center gap-4">
-        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-          <Users className="h-8 w-8 text-muted-foreground" />
+        <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <Users className="h-8 w-8 text-primary" />
         </div>
         <div className="space-y-1">
           <h2 className="text-lg font-semibold">No clients yet</h2>
-          <p className="text-sm text-muted-foreground">
-            Start by adding your first client to manage their campaigns and track results.
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Start by adding your first client to manage their campaigns and
+            track results.
           </p>
         </div>
         <Button onClick={() => router.push("/clients/new")}>
@@ -64,8 +66,8 @@ export default function ClientsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">Clients</h1>
+        <div className="space-y-0.5">
+          <h1 className="text-2xl font-semibold tracking-tight">Clients</h1>
           <p className="text-sm text-muted-foreground">
             Manage all your clients and their campaigns
           </p>
@@ -82,22 +84,22 @@ export default function ClientsPage() {
           value={filter}
           onValueChange={(v) => setFilter(v as typeof filter)}
         >
-          <TabsList>
+          <TabsList className="bg-muted/50">
             <TabsTrigger value="all">
               All
-              <span className="ml-1.5 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-background px-1.5 py-0.5 rounded-full">
                 {clients.length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="active">
               Active
-              <span className="ml-1.5 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-background px-1.5 py-0.5 rounded-full">
                 {clients.filter((c) => c.status === "active").length}
               </span>
             </TabsTrigger>
             <TabsTrigger value="inactive">
               Inactive
-              <span className="ml-1.5 text-xs bg-muted px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-background px-1.5 py-0.5 rounded-full">
                 {clients.filter((c) => c.status === "inactive").length}
               </span>
             </TabsTrigger>
@@ -108,14 +110,12 @@ export default function ClientsPage() {
           placeholder="Search clients..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs h-9"
+          className="max-w-xs"
         />
       </div>
 
       {/* Error */}
-      {error && (
-        <p className="text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       {/* Table */}
       {loading ? (

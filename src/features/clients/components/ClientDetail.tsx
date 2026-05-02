@@ -2,23 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreHorizontal, Plus, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Plus, MoreHorizontal, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { EditClientForm } from "@/features/clients/components/EditClientForm";
-import { Client } from "@/features/clients/types";
+import { Client, Campaign } from "@/features/clients/types";
+import { Insight } from "@/features/campaigns/types";
 import { useClientMutations } from "@/features/clients/hooks/useClients";
 import { cn } from "@/lib/utils";
 
 interface ClientDetailProps {
   client: Client;
+  insights: Insight[];
   initialEdit?: boolean;
   onEditSuccess?: () => void;
 }
@@ -44,16 +39,69 @@ const campaignStatusLabel: Record<string, string> = {
   archived: "Archived",
 };
 
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return "Just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(mo / 12)}y ago`;
+}
+
+function CampaignTableHeader() {
+  return (
+    <div
+      className="grid gap-4 px-4 py-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border"
+      style={{ gridTemplateColumns: "2fr 1fr 1fr" }}
+    >
+      <span>Campaign</span>
+      <span>Platform</span>
+      <span>Status</span>
+    </div>
+  );
+}
+
+function CampaignRow({ campaign }: { campaign: Campaign }) {
+  const router = useRouter();
+  return (
+    <div
+      className="grid gap-4 px-4 py-3 items-center hover:bg-muted/40 cursor-pointer transition-colors"
+      style={{ gridTemplateColumns: "2fr 1fr 1fr" }}
+      onClick={() => router.push(`/campaigns/${campaign.id}`)}
+    >
+      <span className="text-sm font-medium truncate">{campaign.name}</span>
+      <span className="text-sm text-muted-foreground">{campaign.platform}</span>
+      <span
+        className={cn(
+          "text-xs px-2.5 py-1 rounded-full font-medium border w-fit",
+          campaignStatusStyles[campaign.status] ?? campaignStatusStyles.planned
+        )}
+      >
+        {campaignStatusLabel[campaign.status] ?? campaign.status}
+      </span>
+    </div>
+  );
+}
+
 export function ClientDetail({
   client,
+  insights,
   initialEdit = false,
   onEditSuccess,
 }: ClientDetailProps) {
   const router = useRouter();
   const { remove, loading } = useClientMutations();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "campaigns" | "notes">("overview");
   const [isEditing, setIsEditing] = useState(initialEdit);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const campaigns = client.campaigns ?? [];
 
   const handleDelete = async () => {
     await remove(client.id);
@@ -73,9 +121,30 @@ export function ClientDetail({
     .toUpperCase()
     .slice(0, 2);
 
+  const activeCampaigns = campaigns.filter((c) => c.status === "active").length;
+
+  const lastActivityDate =
+    campaigns.length > 0
+      ? [...campaigns].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )[0].createdAt
+      : client.createdAt;
+
+  const stats = [
+    { label: "Total Campaigns", value: campaigns.length, valueClass: "" },
+    { label: "Active", value: activeCampaigns, valueClass: "text-green-700" },
+    { label: "AI Insights", value: insights.length, valueClass: "text-primary" },
+    { label: "Last Activity", value: relativeTime(lastActivityDate), valueClass: "" },
+  ];
+
+  const tabs = [
+    { key: "overview" as const, label: "Overview" },
+    { key: "campaigns" as const, label: `Campaigns (${campaigns.length})` },
+    { key: "notes" as const, label: "Notes" },
+  ];
+
   return (
-    <div className="space-y-6 max-w-5xl">
-      {/* Confirm Delete Modal */}
+    <div className="space-y-6">
       <ConfirmModal
         open={showDeleteConfirm}
         title="Delete client?"
@@ -100,19 +169,17 @@ export function ClientDetail({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-bold">
+          <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-lg font-bold shrink-0">
             {initials}
           </div>
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {client.name}
-              </h1>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-2xl font-semibold tracking-tight">{client.name}</h1>
               <span
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-full font-medium border",
                   statusStyles[client.status as keyof typeof statusStyles] ??
-                    statusStyles.inactive,
+                    statusStyles.inactive
                 )}
               >
                 {client.status}
@@ -120,7 +187,7 @@ export function ClientDetail({
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
               {client.industry && (
-                <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full">
                   {client.industry}
                 </span>
               )}
@@ -138,13 +205,9 @@ export function ClientDetail({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIsEditing((e) => !e)}
-          >
+          <Button size="sm" variant="outline" onClick={() => setIsEditing((e) => !e)}>
             <Pencil className="h-3.5 w-3.5 mr-1.5" />
-            {isEditing ? "Cancel Edit" : "Edit"}
+            {isEditing ? "Cancel" : "Edit"}
           </Button>
           <Button
             size="sm"
@@ -153,28 +216,18 @@ export function ClientDetail({
             <Plus className="h-4 w-4 mr-1" />
             New Campaign
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                Edit Client
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                Delete Client
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Edit Form — inline, slides in below header */}
+      {/* Edit Form */}
       {isEditing && (
         <EditClientForm
           client={client}
@@ -183,27 +236,106 @@ export function ClientDetail({
         />
       )}
 
-      {/* Tabs */}
       {!isEditing && (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="campaigns">
-              Campaigns
-              {client.campaigns && client.campaigns.length > 0 && (
-                <span className="ml-1.5 text-xs bg-muted px-1.5 py-0.5 rounded-full">
-                  {client.campaigns.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-          </TabsList>
+        <>
+          {/* Stats Row */}
+          <div className="grid grid-cols-4 gap-3">
+            {stats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-xl border border-border bg-card shadow-sm p-4 space-y-1"
+              >
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <p className={cn("text-2xl font-semibold tracking-tight", stat.valueClass)}>
+                  {stat.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Custom Tab Bar */}
+          <div className="border-b border-border flex gap-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "pb-3 text-sm transition-colors",
+                  activeTab === tab.key
+                    ? "border-b-2 border-primary text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
           {/* Overview Tab */}
-          <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Client Info Card */}
-              <div className="rounded-xl border border-border bg-card shadow-sm p-6 space-y-4">
+          {activeTab === "overview" && (
+            <div className="grid grid-cols-[3fr_2fr] gap-3 items-start">
+              {/* Left: Campaigns + AI Insights */}
+              <div className="space-y-3">
+                <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <h2 className="text-sm font-semibold">Campaigns</h2>
+                    {campaigns.length > 5 && (
+                      <button
+                        onClick={() => setActiveTab("campaigns")}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        View All
+                      </button>
+                    )}
+                  </div>
+                  {campaigns.length > 0 ? (
+                    <>
+                      <CampaignTableHeader />
+                      <div className="divide-y divide-border">
+                        {campaigns.slice(0, 5).map((c) => (
+                          <CampaignRow key={c.id} campaign={c} />
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 gap-2">
+                      <p className="text-sm text-muted-foreground">No campaigns yet</p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          router.push(`/campaigns/new?clientId=${client.id}`)
+                        }
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1" />
+                        Create Campaign
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {insights.length > 0 && (
+                  <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      <h2 className="text-sm font-semibold">AI Insights</h2>
+                    </div>
+                    <div className="divide-y divide-border">
+                      {insights.slice(0, 3).map((insight) => (
+                        <div key={insight.id} className="px-4 py-3 space-y-1">
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            {insight.type}
+                          </p>
+                          <p className="text-sm leading-relaxed">{insight.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right: Client Info */}
+              <div className="rounded-xl border border-border bg-card shadow-sm p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-semibold">Client Information</h2>
                   <button
@@ -222,14 +354,11 @@ export function ClientDetail({
                     { label: "Website", value: client.website },
                     {
                       label: "Added On",
-                      value: new Date(client.createdAt).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      ),
+                      value: new Date(client.createdAt).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      }),
                     },
                   ].map((item) => (
                     <div key={item.label} className="space-y-0.5">
@@ -239,155 +368,44 @@ export function ClientDetail({
                       <p className="font-medium">{item.value || "—"}</p>
                     </div>
                   ))}
-                  {client.notes && (
-                    <div className="space-y-0.5 pt-2 border-t border-border">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        Notes
-                      </p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {client.notes}
-                      </p>
-                    </div>
-                  )}
                 </div>
-              </div>
-
-              {/* Campaigns Preview */}
-              <div className="lg:col-span-2 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold">
-                    Campaigns ({client.campaigns?.length ?? 0})
-                  </h2>
-                  {(client.campaigns?.length ?? 0) > 3 && (
-                    <button
-                      onClick={() => setActiveTab("campaigns")}
-                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      View All
-                    </button>
-                  )}
-                </div>
-
-                {client.campaigns && client.campaigns.length > 0 ? (
-                  <div className="space-y-2">
-                    {client.campaigns.slice(0, 3).map((campaign) => (
-                      <div
-                        key={campaign.id}
-                        className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-muted/40 cursor-pointer transition-colors shadow-sm"
-                        onClick={() => router.push(`/campaigns/${campaign.id}`)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                            {campaign.name[0]}
-                          </div>
-                          <div className="flex flex-col leading-tight">
-                            <span className="text-sm font-medium">
-                              {campaign.name}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {campaign.platform} ·{" "}
-                              {campaign.startDate
-                                ? `Started ${new Date(campaign.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                                : "No start date"}
-                            </span>
-                          </div>
-                        </div>
-                        <span
-                          className={cn(
-                            "text-xs px-2.5 py-1 rounded-full font-medium border",
-                            campaignStatusStyles[campaign.status] ??
-                              campaignStatusStyles.planned,
-                          )}
-                        >
-                          {campaignStatusLabel[campaign.status] ??
-                            campaign.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center rounded-xl border border-border bg-muted/20">
-                    <p className="text-sm text-muted-foreground">
-                      No campaigns yet
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="mt-3"
-                      onClick={() =>
-                        router.push(`/campaigns/new?clientId=${client.id}`)
-                      }
-                    >
-                      <Plus className="h-3.5 w-3.5 mr-1" />
-                      Create Campaign
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
-          </TabsContent>
+          )}
 
           {/* Campaigns Tab */}
-          <TabsContent value="campaigns" className="mt-6">
-            {client.campaigns && client.campaigns.length > 0 ? (
-              <div className="space-y-2">
-                {client.campaigns.map((campaign) => (
-                  <div
-                    key={campaign.id}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-muted/40 cursor-pointer transition-colors shadow-sm"
-                    onClick={() => router.push(`/campaigns/${campaign.id}`)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                        {campaign.name[0]}
-                      </div>
-                      <div className="flex flex-col leading-tight">
-                        <span className="text-sm font-medium">
-                          {campaign.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {campaign.platform} ·{" "}
-                          {campaign.startDate
-                            ? `Started ${new Date(campaign.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                            : "No start date"}
-                        </span>
-                      </div>
-                    </div>
-                    <span
-                      className={cn(
-                        "text-xs px-2.5 py-1 rounded-full font-medium border",
-                        campaignStatusStyles[campaign.status] ??
-                          campaignStatusStyles.planned,
-                      )}
-                    >
-                      {campaignStatusLabel[campaign.status] ?? campaign.status}
-                    </span>
+          {activeTab === "campaigns" && (
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+              {campaigns.length > 0 ? (
+                <>
+                  <CampaignTableHeader />
+                  <div className="divide-y divide-border">
+                    {campaigns.map((c) => (
+                      <CampaignRow key={c.id} campaign={c} />
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-border bg-muted/20">
-                <p className="text-sm text-muted-foreground">
-                  No campaigns yet
-                </p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="mt-3"
-                  onClick={() =>
-                    router.push(`/campaigns/new?clientId=${client.id}`)
-                  }
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" />
-                  Create Campaign
-                </Button>
-              </div>
-            )}
-          </TabsContent>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 gap-2">
+                  <p className="text-sm text-muted-foreground">No campaigns yet</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      router.push(`/campaigns/new?clientId=${client.id}`)
+                    }
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Create Campaign
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Notes Tab */}
-          <TabsContent value="notes" className="mt-6">
-            <div className="max-w-2xl rounded-xl border border-border bg-card shadow-sm p-6 space-y-2">
+          {activeTab === "notes" && (
+            <div className="rounded-xl border border-border bg-card shadow-sm p-6 space-y-2 max-w-2xl">
               <h2 className="text-sm font-semibold">Notes</h2>
               {client.notes ? (
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -405,8 +423,8 @@ export function ClientDetail({
                 </p>
               )}
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </>
       )}
     </div>
   );

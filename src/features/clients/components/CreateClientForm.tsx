@@ -80,9 +80,9 @@ export function CreateClientForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start w-full">
         {/* Form */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-6 min-w-0">
           {/* Client Name */}
           <div className="space-y-2">
             <Label htmlFor="name">
@@ -235,7 +235,7 @@ export function CreateClientForm() {
         </div>
 
         {/* Preview Panel */}
-        <div className="hidden lg:flex flex-col gap-3 pt-8">
+        <div className="hidden lg:flex flex-col gap-3 pt-8 min-w-0">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Preview
           </p>

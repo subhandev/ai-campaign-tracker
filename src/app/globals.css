@@ -96,6 +96,23 @@
   --sidebar-ring: oklch(0.65 0.2 250);
 
   --radius: 0.5rem;
+
+  /* Auth page specific */
+  --gradient-panel: linear-gradient(
+    135deg,
+    #1a0f3c 0%,
+    #1e1145 40%,
+    #0f1a3c 100%
+  );
+  --gradient-brand: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-button: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  --gradient-button-hover: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
+  --shadow-button-glow: 0 4px 14px -2px rgba(99, 102, 241, 0.5);
+  --shadow-card-elevated:
+    0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 1px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-input-focus: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  --primary-glow: #6366f1;
+  --brand-darker: #1a0f3c;
 }
 
 .dark {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn } from "@clerk/nextjs/legacy";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";

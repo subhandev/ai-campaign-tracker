@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ClientTable } from "@/features/clients/components/ClientTable";
+import { ClientTableSkeleton } from "@/features/clients/components/ClientTableSkeleton";
 import {
   useClients,
   useClientMutations,
@@ -119,9 +120,7 @@ export default function ClientsPage() {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <p className="text-sm text-muted-foreground">Loading clients...</p>
-        </div>
+        <ClientTableSkeleton />
       ) : filtered.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <p className="text-sm text-muted-foreground">

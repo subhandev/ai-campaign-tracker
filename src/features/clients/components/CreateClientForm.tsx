@@ -80,9 +80,10 @@ export function CreateClientForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-10 items-start w-full">
+        {" "}
         {/* Form */}
-        <div className="lg:col-span-3 space-y-6 min-w-0">
+        <div className="space-y-6 min-w-0">
           {/* Client Name */}
           <div className="space-y-2">
             <Label htmlFor="name">
@@ -233,86 +234,101 @@ export function CreateClientForm() {
             </Button>
           </div>
         </div>
-
         {/* Preview Panel */}
-        <div className="hidden lg:flex lg:col-span-2 flex-col gap-3 pt-8 min-w-0">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Preview
-          </p>
-
-          <div className="rounded-xl border bg-zinc-50 border-zinc-200 shadow-sm overflow-hidden h-full min-h-[400px] flex flex-col">
-            {!(watched.name || watched.company || watched.industry || watched.email || watched.phone || watched.website || watched.notes) ? (
-              <div className="flex-1 flex items-center justify-center p-6">
-                <p className="text-xs text-muted-foreground text-center">
-                  Fill in the form to see a preview
-                </p>
-              </div>
-            ) : (
-              <div className="p-6 space-y-5 flex-1 flex flex-col">
-                {/* Avatar + Name */}
-                <div className="flex flex-col items-center gap-3 pb-5 border-b border-primary/10">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
-                    {initials}
-                  </div>
-                  <div className="text-center space-y-1.5">
-                    <p className="text-base font-bold">
-                      {watched.name || "Client Name"}
+        <div className="hidden lg:block min-w-0">
+          <div className="sticky top-6 w-full flex justify-center">
+            <div className="w-full max-w-[460px]">
+              <div className="rounded-xl border bg-zinc-50 border-zinc-200 shadow-sm overflow-hidden min-h-[500px] flex flex-col">
+                {!(
+                  watched.name ||
+                  watched.company ||
+                  watched.industry ||
+                  watched.email ||
+                  watched.phone ||
+                  watched.website ||
+                  watched.notes
+                ) ? (
+                  <div className="flex-1 flex items-center justify-center p-6">
+                    <p className="text-xs text-muted-foreground text-center">
+                      Fill in the form to see a preview
                     </p>
-                    {watched.industry && (
-                      <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full inline-block font-medium">
-                        {watched.industry}
-                      </span>
-                    )}
                   </div>
-                </div>
+                ) : (
+                  <div className="p-6 space-y-5 flex-1 flex flex-col">
+                    {/* Avatar + Name */}
+                    <div className="flex flex-col items-center gap-3 pb-5 border-b border-primary/10">
+                      <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
+                        {initials}
+                      </div>
+                      <div className="text-center space-y-1.5">
+                        <p className="text-base font-bold">
+                          {watched.name || "Client Name"}
+                        </p>
+                        {watched.industry && (
+                          <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full inline-block font-medium">
+                            {watched.industry}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                {/* Details */}
-                <div className="space-y-4">
-                  {watched.company && (
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        Company
-                      </p>
-                      <p className="text-sm font-semibold">{watched.company}</p>
+                    {/* Details */}
+                    <div className="space-y-4">
+                      {watched.company && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Company
+                          </p>
+                          <p className="text-sm font-semibold">
+                            {watched.company}
+                          </p>
+                        </div>
+                      )}
+                      {watched.email && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Email
+                          </p>
+                          <p className="text-sm font-semibold truncate">
+                            {watched.email}
+                          </p>
+                        </div>
+                      )}
+                      {watched.phone && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Phone
+                          </p>
+                          <p className="text-sm font-semibold">
+                            {watched.phone}
+                          </p>
+                        </div>
+                      )}
+                      {watched.website && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Website
+                          </p>
+                          <p className="text-sm font-semibold truncate">
+                            {watched.website}
+                          </p>
+                        </div>
+                      )}
+                      {watched.notes && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Notes
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                            {watched.notes}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {watched.email && (
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        Email
-                      </p>
-                      <p className="text-sm font-semibold truncate">{watched.email}</p>
-                    </div>
-                  )}
-                  {watched.phone && (
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        Phone
-                      </p>
-                      <p className="text-sm font-semibold">{watched.phone}</p>
-                    </div>
-                  )}
-                  {watched.website && (
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        Website
-                      </p>
-                      <p className="text-sm font-semibold truncate">{watched.website}</p>
-                    </div>
-                  )}
-                  {watched.notes && (
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        Notes
-                      </p>
-                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                        {watched.notes}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Pencil, Plus, MoreHorizontal, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Pencil,
+  Plus,
+  MoreHorizontal,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { EditClientForm } from "@/features/clients/components/EditClientForm";
@@ -80,7 +86,7 @@ function CampaignRow({ campaign }: { campaign: Campaign }) {
       <span
         className={cn(
           "text-xs px-2.5 py-1 rounded-full font-medium border w-fit",
-          campaignStatusStyles[campaign.status] ?? campaignStatusStyles.planned
+          campaignStatusStyles[campaign.status] ?? campaignStatusStyles.planned,
         )}
       >
         {campaignStatusLabel[campaign.status] ?? campaign.status}
@@ -97,7 +103,9 @@ export function ClientDetail({
 }: ClientDetailProps) {
   const router = useRouter();
   const { remove, loading } = useClientMutations();
-  const [activeTab, setActiveTab] = useState<"overview" | "campaigns" | "notes">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "campaigns" | "notes"
+  >("overview");
   const [isEditing, setIsEditing] = useState(initialEdit);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -126,15 +134,24 @@ export function ClientDetail({
   const lastActivityDate =
     campaigns.length > 0
       ? [...campaigns].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         )[0].createdAt
       : client.createdAt;
 
   const stats = [
     { label: "Total Campaigns", value: campaigns.length, valueClass: "" },
     { label: "Active", value: activeCampaigns, valueClass: "text-green-700" },
-    { label: "AI Insights", value: insights.length, valueClass: "text-primary" },
-    { label: "Last Activity", value: relativeTime(lastActivityDate), valueClass: "" },
+    {
+      label: "AI Insights",
+      value: insights.length,
+      valueClass: "text-primary",
+    },
+    {
+      label: "Last Activity",
+      value: relativeTime(lastActivityDate),
+      valueClass: "",
+    },
   ];
 
   const tabs = [
@@ -174,12 +191,14 @@ export function ClientDetail({
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-2xl font-semibold tracking-tight">{client.name}</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {client.name}
+              </h1>
               <span
                 className={cn(
                   "text-xs px-2.5 py-1 rounded-full font-medium border",
                   statusStyles[client.status as keyof typeof statusStyles] ??
-                    statusStyles.inactive
+                    statusStyles.inactive,
                 )}
               >
                 {client.status}
@@ -205,7 +224,11 @@ export function ClientDetail({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button size="sm" variant="outline" onClick={() => setIsEditing((e) => !e)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsEditing((e) => !e)}
+          >
             <Pencil className="h-3.5 w-3.5 mr-1.5" />
             {isEditing ? "Cancel" : "Edit"}
           </Button>
@@ -246,7 +269,12 @@ export function ClientDetail({
                 className="rounded-xl border border-border bg-card shadow-sm p-4 space-y-1"
               >
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
-                <p className={cn("text-2xl font-semibold tracking-tight", stat.valueClass)}>
+                <p
+                  className={cn(
+                    "text-2xl font-semibold tracking-tight",
+                    stat.valueClass,
+                  )}
+                >
                   {stat.value}
                 </p>
               </div>
@@ -263,7 +291,7 @@ export function ClientDetail({
                   "pb-3 text-sm transition-colors",
                   activeTab === tab.key
                     ? "border-b-2 border-primary text-primary font-medium"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {tab.label}
@@ -299,7 +327,9 @@ export function ClientDetail({
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-10 gap-2">
-                      <p className="text-sm text-muted-foreground">No campaigns yet</p>
+                      <p className="text-sm text-muted-foreground">
+                        No campaigns yet
+                      </p>
                       <Button
                         size="sm"
                         variant="outline"
@@ -326,7 +356,9 @@ export function ClientDetail({
                           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                             {insight.type}
                           </p>
-                          <p className="text-sm leading-relaxed">{insight.content}</p>
+                          <p className="text-sm leading-relaxed">
+                            {insight.content}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -354,11 +386,14 @@ export function ClientDetail({
                     { label: "Website", value: client.website },
                     {
                       label: "Added On",
-                      value: new Date(client.createdAt).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      }),
+                      value: new Date(client.createdAt).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        },
+                      ),
                     },
                   ].map((item) => (
                     <div key={item.label} className="space-y-0.5">
@@ -387,7 +422,9 @@ export function ClientDetail({
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 gap-2">
-                  <p className="text-sm text-muted-foreground">No campaigns yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    No campaigns yet
+                  </p>
                   <Button
                     size="sm"
                     variant="outline"

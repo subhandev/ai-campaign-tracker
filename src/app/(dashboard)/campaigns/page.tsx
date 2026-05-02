@@ -12,6 +12,7 @@ import {
   useCampaignMutations,
 } from "@/features/campaigns/hooks/useCampaigns";
 import { CampaignStatus } from "@/features/campaigns/types";
+import { CampaignTableSkeleton } from "@/features/campaigns/components/CampaignTableSkeleton";
 
 type FilterType = "all" | CampaignStatus;
 
@@ -126,9 +127,7 @@ export default function CampaignsPage() {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <p className="text-sm text-muted-foreground">Loading campaigns...</p>
-        </div>
+        <CampaignTableSkeleton />
       ) : filtered.length === 0 ? (
         <div className="flex items-center justify-center py-16">
           <p className="text-sm text-muted-foreground">

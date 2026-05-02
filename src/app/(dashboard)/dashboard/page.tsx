@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CampaignStatus } from "@/features/campaigns/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardData {
   stats: {
@@ -168,13 +169,66 @@ export default function DashboardPage() {
     year: "numeric",
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+if (loading) {
+  return (
+    <div className="space-y-8">
+
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-56" />
+        </div>
+        <Skeleton className="h-9 w-32 rounded-md" />
       </div>
-    );
-  }
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="rounded-xl border border-border bg-card p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+            </div>
+            <Skeleton className="h-6 w-20" />
+          </div>
+        ))}
+      </div>
+
+      {/* Middle Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="rounded-xl border border-border bg-card p-6 space-y-4">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-40 w-full rounded-md" />
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-3">
+          <Skeleton className="h-4 w-40" />
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-md" />
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-32" />
+          <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full rounded-md" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+}
 
   if (!data) return null;
 

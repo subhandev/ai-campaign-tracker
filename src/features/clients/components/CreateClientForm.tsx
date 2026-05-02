@@ -235,18 +235,20 @@ export function CreateClientForm() {
         </div>
 
         {/* Preview Panel */}
-        <div className="hidden lg:flex flex-col gap-3 pt-8 sticky top-6 self-start">
+        <div className="hidden lg:flex flex-col gap-3 pt-8">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             Preview
           </p>
 
-          <div className="rounded-xl border bg-zinc-50 border-zinc-200 shadow-sm overflow-hidden">
+          <div className="rounded-xl border bg-zinc-50 border-zinc-200 shadow-sm overflow-hidden h-full min-h-[400px] flex flex-col">
             {!(watched.name || watched.company || watched.industry || watched.email || watched.phone || watched.website || watched.notes) ? (
-              <div className="p-6 flex flex-col items-center justify-center min-h-[200px] text-center">
-                <p className="text-sm text-muted-foreground">Fill in the form to see a preview</p>
+              <div className="flex-1 flex items-center justify-center p-6">
+                <p className="text-xs text-muted-foreground text-center">
+                  Fill in the form to see a preview
+                </p>
               </div>
             ) : (
-              <div className="p-6 space-y-5">
+              <div className="p-6 space-y-5 flex-1 flex flex-col">
                 {/* Avatar + Name */}
                 <div className="flex flex-col items-center gap-3 pb-5 border-b border-primary/10">
                   <div className="h-16 w-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">

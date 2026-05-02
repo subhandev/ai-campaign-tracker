@@ -19,21 +19,28 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const mainNav = [
+type NavItem = {
+  label: string;
+  icon: React.ElementType;
+  href: string;
+  soon?: boolean;
+};
+
+const mainNav: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Clients", icon: Users, href: "/clients" },
   { label: "Campaigns", icon: Megaphone, href: "/campaigns" },
-  { label: "Tasks", icon: CheckSquare, href: "/tasks" },
-  { label: "Calendar", icon: Calendar, href: "/calendar" },
-  { label: "Reports", icon: BarChart3, href: "/reports" },
-  { label: "AI Reports", icon: Sparkles, href: "/ai-reports" },
+  { label: "Tasks", icon: CheckSquare, href: "/tasks", soon: true },
+  { label: "Calendar", icon: Calendar, href: "/calendar", soon: true },
+  { label: "Reports", icon: BarChart3, href: "/reports", soon: true },
+  { label: "AI Reports", icon: Sparkles, href: "/ai-reports", soon: true },
 ];
 
-const managementNav = [
-  { label: "Team", icon: Users2, href: "/team" },
-  { label: "Documents", icon: FileText, href: "/documents" },
-  { label: "Integrations", icon: Plug, href: "/integrations" },
-  { label: "Settings", icon: Settings, href: "/settings" },
+const managementNav: NavItem[] = [
+  { label: "Team", icon: Users2, href: "/team", soon: true },
+  { label: "Documents", icon: FileText, href: "/documents", soon: true },
+  { label: "Integrations", icon: Plug, href: "/integrations", soon: true },
+  { label: "Settings", icon: Settings, href: "/settings", soon: true },
 ];
 
 export function Sidebar({ collapsed }: { collapsed?: boolean }) {
@@ -92,6 +99,31 @@ export function Sidebar({ collapsed }: { collapsed?: boolean }) {
           {mainNav.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
+
+            if (item.soon) {
+              return (
+                <div
+                  key={item.label}
+                  className={`
+                    flex items-center px-3 py-2 rounded-lg cursor-default
+                    text-sm font-normal leading-5 tracking-tight
+                    text-muted-foreground opacity-60
+                    ${collapsed ? "justify-center" : "gap-2"}
+                  `}
+                >
+                  <Icon className="h-4 w-4" />
+                  {!collapsed && (
+                    <>
+                      {item.label}
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-auto">
+                        Soon
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.label}
@@ -126,6 +158,31 @@ export function Sidebar({ collapsed }: { collapsed?: boolean }) {
           )}
           {managementNav.map((item) => {
             const Icon = item.icon;
+
+            if (item.soon) {
+              return (
+                <div
+                  key={item.label}
+                  className={`
+                    flex items-center px-3 py-2 rounded-lg cursor-default
+                    text-sm font-normal leading-5 tracking-tight
+                    text-muted-foreground opacity-60
+                    ${collapsed ? "justify-center" : "gap-2"}
+                  `}
+                >
+                  <Icon className="h-4 w-4" />
+                  {!collapsed && (
+                    <>
+                      {item.label}
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-auto">
+                        Soon
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            }
+
             const active = isActive(item.href);
             return (
               <Link

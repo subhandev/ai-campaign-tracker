@@ -47,7 +47,7 @@ export function Sidebar({ collapsed }: { collapsed?: boolean }) {
   return (
     <aside
       className={`
-        border-r bg-sidebar flex flex-col py-4
+        border-r bg-sidebar flex flex-col py-4 shrink-0
         transition-all duration-200
         ${collapsed ? "w-16 px-2" : "w-64 px-3"}
       `}

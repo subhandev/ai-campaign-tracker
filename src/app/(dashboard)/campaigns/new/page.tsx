@@ -4,7 +4,7 @@ import { CreateCampaignForm } from "@/features/campaigns/components/CreateCampai
 
 export default function NewCampaignPage() {
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 w-full">
       {/* Back */}
       <Link
         href="/campaigns"

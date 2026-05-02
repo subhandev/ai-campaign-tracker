@@ -93,11 +93,11 @@ export function CreateCampaignForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-10 items-start w-full">
 
         {/* Form */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 min-w-0">
 
           {/* Name + Client */}
           <div className="grid grid-cols-2 gap-4">
@@ -218,24 +218,15 @@ export function CreateCampaignForm() {
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <p className="text-xs text-muted-foreground">Start Date</p>
-                <Input
-                  type="date"
-                  {...register("startDate")}
-                />
+                <Input type="date" {...register("startDate")} />
               </div>
               <div className="space-y-1.5">
                 <p className="text-xs text-muted-foreground">End Date</p>
-                <Input
-                  type="date"
-                  {...register("endDate")}
-                />
+                <Input type="date" {...register("endDate")} />
               </div>
               <div className="space-y-1.5">
                 <p className="text-xs text-muted-foreground">Deadline</p>
-                <Input
-                  type="date"
-                  {...register("deadline")}
-                />
+                <Input type="date" {...register("deadline")} />
               </div>
             </div>
           </div>
@@ -287,88 +278,105 @@ export function CreateCampaignForm() {
         </div>
 
         {/* Preview Panel */}
-        <div className="hidden lg:flex flex-col gap-3 pt-8">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Preview
-          </p>
-
-          <div className="rounded-xl border border-zinc-200 bg-zinc-50 shadow-sm overflow-hidden">
-            <div className="p-6 space-y-5">
-              {/* Name + Client */}
-              <div className="flex flex-col gap-1 pb-4 border-b border-zinc-200">
-                <h3 className="text-base font-bold">
-                  {watched.name || "Campaign Name"}
-                </h3>
-                {selectedClient && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-4 w-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold">
-                      {selectedClient.name[0]}
+        <div className="hidden lg:block min-w-0">
+          <div className="sticky top-6 w-full flex justify-center">
+            <div className="w-full max-w-[460px]">
+              <div className="rounded-xl border bg-zinc-50 border-zinc-200 shadow-sm overflow-hidden min-h-[500px] flex flex-col">
+                {!(
+                  watched.name ||
+                  watched.clientId ||
+                  watched.platform ||
+                  watched.description ||
+                  watched.goal ||
+                  watched.startDate ||
+                  watched.endDate ||
+                  watched.deadline
+                ) ? (
+                  <div className="flex-1 flex items-center justify-center p-6">
+                    <p className="text-xs text-muted-foreground text-center">
+                      Fill in the form to see a preview
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-6 space-y-5 flex-1 flex flex-col">
+                    {/* Name + Client + Status */}
+                    <div className="flex flex-col gap-1 pb-5 border-b border-primary/10">
+                      <h3 className="text-base font-bold">
+                        {watched.name || "Campaign Name"}
+                      </h3>
+                      {selectedClient && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-4 w-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[9px] font-bold">
+                            {selectedClient.name[0]}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {selectedClient.name}
+                          </span>
+                        </div>
+                      )}
+                      {watched.status && (
+                        <span
+                          className={cn(
+                            "text-xs px-2.5 py-0.5 rounded-full font-medium border w-fit mt-1",
+                            statusStyles[watched.status as keyof typeof statusStyles]
+                          )}
+                        >
+                          {watched.status.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                        </span>
+                      )}
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {selectedClient.name}
-                    </span>
-                  </div>
-                )}
-                {watched.status && (
-                  <span
-                    className={cn(
-                      "text-xs px-2.5 py-0.5 rounded-full font-medium border w-fit mt-1",
-                      statusStyles[watched.status as keyof typeof statusStyles]
-                    )}
-                  >
-                    {watched.status.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </span>
-                )}
-              </div>
 
-              {/* Details */}
-              <div className="space-y-3">
-                {watched.platform && (
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      Platform
-                    </p>
-                    <p className="text-sm font-semibold">{watched.platform}</p>
-                  </div>
-                )}
+                    {/* Details */}
+                    <div className="space-y-4">
+                      {watched.platform && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Platform
+                          </p>
+                          <p className="text-sm font-semibold">{watched.platform}</p>
+                        </div>
+                      )}
 
-                {(watched.startDate || watched.endDate) && (
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      Timeline
-                    </p>
-                    <p className="text-sm font-semibold">
-                      {watched.startDate || "—"} → {watched.endDate || "—"}
-                    </p>
-                  </div>
-                )}
+                      {(watched.startDate || watched.endDate) && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Timeline
+                          </p>
+                          <p className="text-sm font-semibold">
+                            {watched.startDate || "—"} → {watched.endDate || "—"}
+                          </p>
+                        </div>
+                      )}
 
-                {watched.deadline && (
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      Deadline
-                    </p>
-                    <p className="text-sm font-semibold">{watched.deadline}</p>
-                  </div>
-                )}
+                      {watched.deadline && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Deadline
+                          </p>
+                          <p className="text-sm font-semibold">{watched.deadline}</p>
+                        </div>
+                      )}
 
-                {watched.goal && (
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      Goal
-                    </p>
-                    <p className="text-sm font-semibold">{watched.goal}</p>
-                  </div>
-                )}
+                      {watched.goal && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Goal
+                          </p>
+                          <p className="text-sm font-semibold">{watched.goal}</p>
+                        </div>
+                      )}
 
-                {watched.description && (
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      Description
-                    </p>
-                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                      {watched.description}
-                    </p>
+                      {watched.description && (
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Description
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                            {watched.description}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

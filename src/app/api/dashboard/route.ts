@@ -26,18 +26,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
   }
 
-  // Fetch all data in parallel
   const [clients, campaigns, metrics] = await Promise.all([
     prisma.client.findMany({
       where: { workspaceId },
-      select: { id: true, status: true },
+      select: { id: true, name: true, industry: true, status: true, createdAt: true, _count: { select: { campaigns: true } } },
+      orderBy: { createdAt: "desc" },
     }),
     prisma.campaign.findMany({
       where: { client: { workspaceId } },
       include: {
-        client: {
-          select: { id: true, name: true, industry: true },
-        },
+        client: { select: { id: true, name: true, industry: true } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -47,7 +45,6 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
-  // Stats
   const totalClients = clients.length;
   const activeCampaigns = campaigns.filter((c) => c.status === "active").length;
   const atRiskCampaigns = campaigns.filter((c) => c.status === "at_risk").length;
@@ -55,7 +52,6 @@ export async function GET(req: NextRequest) {
   const plannedCampaigns = campaigns.filter((c) => c.status === "planned").length;
   const totalSpend = metrics.reduce((sum, m) => sum + m.spend, 0);
 
-  // Campaign health breakdown for chart
   const health = {
     active: activeCampaigns,
     at_risk: atRiskCampaigns,
@@ -65,7 +61,6 @@ export async function GET(req: NextRequest) {
     total: campaigns.length,
   };
 
-  // Recent campaigns (last 5)
   const recentCampaigns = campaigns.slice(0, 5).map((c) => ({
     id: c.id,
     name: c.name,
@@ -73,6 +68,25 @@ export async function GET(req: NextRequest) {
     status: c.status,
     deadline: c.deadline,
     client: c.client,
+  }));
+
+  const atRiskCampaignsList = campaigns
+    .filter((c) => c.status === "at_risk")
+    .slice(0, 4)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      platform: c.platform,
+      deadline: c.deadline,
+      client: c.client,
+    }));
+
+  const recentClients = clients.slice(0, 4).map((c) => ({
+    id: c.id,
+    name: c.name,
+    industry: c.industry,
+    status: c.status,
+    campaignCount: c._count.campaigns,
   }));
 
   return NextResponse.json({
@@ -85,5 +99,7 @@ export async function GET(req: NextRequest) {
     },
     health,
     recentCampaigns,
+    atRiskCampaignsList,
+    recentClients,
   });
 }

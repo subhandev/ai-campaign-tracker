@@ -53,14 +53,34 @@ export function Sidebar({ collapsed }: { collapsed?: boolean }) {
       `}
     >
       {/* Logo */}
+
       <div className={`mb-6 ${collapsed ? "flex justify-center" : "px-2"}`}>
         {!collapsed ? (
-          <h2 className="text-sm font-semibold tracking-tight">
-            Marketiqo
-          </h2>
+          <div className="relative z-10 flex items-center gap-2.5">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-lg shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                boxShadow: "0 4px 14px -2px rgba(99, 102, 241, 0.5)",
+              }}
+            >
+              <Sparkles className="h-5 w-5 text-white" strokeWidth={2.5} />
+            </div>
+            <span className="text-base font-semibold tracking-tight">
+              Marketiqo
+            </span>
+          </div>
         ) : (
-          <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center text-white text-xs font-bold">
-            AI
+          <div className="relative z-10 flex items-center gap-2.5">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-lg shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+                boxShadow: "0 4px 14px -2px rgba(99, 102, 241, 0.5)",
+              }}
+            >
+              <Sparkles className="h-5 w-5 text-white" strokeWidth={2.5} />
+            </div>
           </div>
         )}
       </div>

@@ -11,6 +11,7 @@ import {
   Sparkles,
   ArrowRight,
   Plus,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,20 @@ interface DashboardData {
     deadline: string | null;
     client: { id: string; name: string; industry: string | null } | null;
   }[];
+  atRiskCampaignsList: {
+    id: string;
+    name: string;
+    platform: string;
+    deadline: string | null;
+    client: { id: string; name: string; industry: string | null } | null;
+  }[];
+  recentClients: {
+    id: string;
+    name: string;
+    industry: string | null;
+    status: string;
+    campaignCount: number;
+  }[];
 }
 
 const statusStyles: Record<CampaignStatus, string> = {
@@ -58,7 +73,6 @@ const statusLabel: Record<CampaignStatus, string> = {
   archived:  "Archived",
 };
 
-// Simple donut chart using SVG
 function DonutChart({ health }: { health: DashboardData["health"] }) {
   const total = health.total;
   if (total === 0) return (
@@ -80,7 +94,7 @@ function DonutChart({ health }: { health: DashboardData["health"] }) {
 
   return (
     <div className="flex items-center gap-6">
-      <div className="relative">
+      <div className="relative shrink-0">
         <svg width="160" height="160" viewBox="0 0 160 160">
           {segments.map((segment) => {
             const pct = segment.value / total;
@@ -110,14 +124,10 @@ function DonutChart({ health }: { health: DashboardData["health"] }) {
           <span className="text-xs text-muted-foreground">Total</span>
         </div>
       </div>
-
       <div className="space-y-2">
         {segments.map((segment) => (
           <div key={segment.key} className="flex items-center gap-2 text-sm">
-            <div
-              className="h-2.5 w-2.5 rounded-full shrink-0"
-              style={{ backgroundColor: segment.color }}
-            />
+            <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: segment.color }} />
             <span className="text-muted-foreground">{segment.label}</span>
             <span className="font-semibold ml-auto pl-4">
               {segment.value}
@@ -168,7 +178,7 @@ export default function DashboardPage() {
 
   if (!data) return null;
 
-  const { stats, health, recentCampaigns } = data;
+  const { stats, health, recentCampaigns, atRiskCampaignsList, recentClients } = data;
 
   return (
     <div className="space-y-8">
@@ -187,8 +197,8 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Row — 5 cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           {
             label: "Active Campaigns",
@@ -222,6 +232,14 @@ export default function DashboardPage() {
             bg: "bg-blue-50",
             onClick: () => router.push("/clients"),
           },
+          {
+            label: "Total Spend",
+            value: `$${stats.totalSpend.toLocaleString()}`,
+            icon: DollarSign,
+            color: "text-purple-600",
+            bg: "bg-purple-50",
+            onClick: () => router.push("/campaigns"),
+          },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -236,96 +254,82 @@ export default function DashboardPage() {
                 <stat.icon className={cn("h-4 w-4", stat.color)} />
               </div>
             </div>
-            <p className="text-3xl font-bold">{stat.value}</p>
+            <p className="text-2xl font-bold">{stat.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Middle Row */}
+      {/* Middle Row — 3 columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* AI Insights */}
-        <div className="lg:col-span-2 rounded-xl border border-zinc-200 bg-zinc-50 shadow-sm p-6 space-y-4">
+        {/* Needs Attention */}
+        <div className="rounded-xl border border-border bg-card shadow-sm p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold">AI Insights</h2>
-              <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
-                Beta
-              </span>
+              <AlertTriangle className="h-4 w-4 text-orange-500" />
+              <h2 className="text-sm font-semibold">Needs Attention</h2>
+              {stats.atRiskCampaigns > 0 && (
+                <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-medium">
+                  {stats.atRiskCampaigns}
+                </span>
+              )}
             </div>
-            <Button
-              size="sm"
-              variant="outline"
+            <button
               onClick={() => router.push("/campaigns")}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              View all campaigns
-              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-            </Button>
+              View all
+            </button>
           </div>
 
-          {stats.atRiskCampaigns > 0 ? (
-            <div className="space-y-3">
-              <div className="p-3 rounded-lg border border-orange-200 bg-orange-50/50 space-y-1">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                  <p className="text-xs font-semibold">
-                    {stats.atRiskCampaigns} campaign{stats.atRiskCampaigns > 1 ? "s" : ""} need your attention
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  You have {stats.atRiskCampaigns} at-risk campaign{stats.atRiskCampaigns > 1 ? "s" : ""} that may need immediate action to stay on track.
-                </p>
-                <button
-                  onClick={() => router.push("/campaigns")}
-                  className="text-xs text-orange-600 font-medium hover:underline mt-1"
-                >
-                  View at-risk campaigns →
-                </button>
+          {atRiskCampaignsList.length === 0 ? (
+            <div className="flex flex-col items-center text-center gap-2 py-8">
+              <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-green-500" />
               </div>
-
-              <div className="p-3 rounded-lg border border-green-200 bg-green-50/50 space-y-1">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <p className="text-xs font-semibold">
-                    {stats.activeCampaigns} campaign{stats.activeCampaigns > 1 ? "s" : ""} running smoothly
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Your active campaigns are in progress. Open each campaign to generate AI insights and track performance.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-lg border border-blue-200 bg-blue-50/50 space-y-1">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-blue-500" />
-                  <p className="text-xs font-semibold">
-                    ${stats.totalSpend.toLocaleString()} total spend tracked
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Open individual campaigns and click "Generate AI Report" to get performance analysis and optimization recommendations.
-                </p>
-              </div>
+              <p className="text-sm font-medium">All campaigns on track</p>
+              <p className="text-xs text-muted-foreground">
+                No campaigns need attention right now.
+              </p>
             </div>
           ) : (
-            <div className="flex flex-col items-center text-center gap-3 py-8">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">All campaigns looking good</p>
-                <p className="text-xs text-muted-foreground">
-                  No campaigns are at risk. Open any campaign to generate detailed AI insights.
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => router.push("/campaigns")}
-              >
-                View campaigns
-              </Button>
+            <div className="space-y-2">
+              {atRiskCampaignsList.map((campaign) => {
+                const daysLeft = campaign.deadline
+                  ? Math.ceil(
+                      (new Date(campaign.deadline).getTime() - Date.now()) /
+                        (1000 * 60 * 60 * 24)
+                    )
+                  : null;
+                return (
+                  <div
+                    key={campaign.id}
+                    onClick={() => router.push(`/campaigns/${campaign.id}`)}
+                    className="flex items-start justify-between p-3 rounded-lg border border-orange-200 bg-orange-50/40 cursor-pointer hover:bg-orange-50 transition-colors"
+                  >
+                    <div className="space-y-0.5 min-w-0">
+                      <p className="text-xs font-semibold truncate">
+                        {campaign.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {campaign.client?.name} · {campaign.platform}
+                      </p>
+                    </div>
+                    <div className="shrink-0 ml-2 text-right">
+                      {daysLeft !== null && (
+                        <p className={cn(
+                          "text-xs font-medium",
+                          daysLeft <= 3 ? "text-red-600" :
+                          daysLeft <= 7 ? "text-orange-600" :
+                          "text-muted-foreground"
+                        )}>
+                          {daysLeft <= 0 ? "Overdue" : `${daysLeft}d left`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -336,78 +340,189 @@ export default function DashboardPage() {
           <DonutChart health={health} />
         </div>
 
+        {/* AI Insights */}
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50 shadow-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold">AI Summary</h2>
+            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">
+              Beta
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <div className="p-3 rounded-lg border border-green-200 bg-green-50/50 space-y-1">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-3.5 w-3.5 text-green-500" />
+                <p className="text-xs font-semibold">
+                  {stats.activeCampaigns} active campaign{stats.activeCampaigns !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Currently running across your client portfolio.
+              </p>
+            </div>
+
+            {stats.atRiskCampaigns > 0 && (
+              <div className="p-3 rounded-lg border border-orange-200 bg-orange-50/50 space-y-1">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5 text-orange-500" />
+                  <p className="text-xs font-semibold">
+                    {stats.atRiskCampaigns} need{stats.atRiskCampaigns === 1 ? "s" : ""} attention
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Open each at-risk campaign and generate AI insights for recommendations.
+                </p>
+              </div>
+            )}
+
+            <div className="p-3 rounded-lg border border-blue-200 bg-blue-50/50 space-y-1">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-3.5 w-3.5 text-blue-500" />
+                <p className="text-xs font-semibold">
+                  ${stats.totalSpend.toLocaleString()} tracked
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Total spend across all campaigns. Open campaigns to generate AI analysis.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={() => router.push("/campaigns")}
+          >
+            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+            View all campaigns
+          </Button>
+        </div>
+
       </div>
 
-      {/* Recent Campaigns */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">Recent Campaigns</h2>
-          <button
-            onClick={() => router.push("/campaigns")}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-          >
-            View all <ArrowRight className="h-3 w-3" />
-          </button>
-        </div>
+      {/* Bottom Row — Recent Campaigns + Recent Clients */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-          {recentCampaigns.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
-              <p className="text-sm text-muted-foreground">No campaigns yet</p>
-              <Button
-                size="sm"
-                onClick={() => router.push("/campaigns/new")}
-              >
-                <Plus className="h-3.5 w-3.5 mr-1.5" />
-                Create Campaign
-              </Button>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {recentCampaigns.map((campaign) => (
-                <div
-                  key={campaign.id}
-                  onClick={() => router.push(`/campaigns/${campaign.id}`)}
-                  className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/40 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-                      {campaign.name[0]}
-                    </div>
-                    <div className="flex flex-col leading-tight">
-                      <span className="text-sm font-medium">{campaign.name}</span>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        {campaign.client && (
-                          <span>{campaign.client.name}</span>
-                        )}
-                        <span>·</span>
-                        <span>{campaign.platform}</span>
+        {/* Recent Campaigns */}
+        <div className="lg:col-span-2 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Recent Campaigns</h2>
+            <button
+              onClick={() => router.push("/campaigns")}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              View all <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+          <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+            {recentCampaigns.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+                <p className="text-sm text-muted-foreground">No campaigns yet</p>
+                <Button size="sm" onClick={() => router.push("/campaigns/new")}>
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Create Campaign
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {recentCampaigns.map((campaign) => (
+                  <div
+                    key={campaign.id}
+                    onClick={() => router.push(`/campaigns/${campaign.id}`)}
+                    className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/40 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+                        {campaign.name[0]}
+                      </div>
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-sm font-medium">{campaign.name}</span>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          {campaign.client && <span>{campaign.client.name}</span>}
+                          <span>·</span>
+                          <span>{campaign.platform}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    {campaign.deadline && (
-                      <span className="text-xs text-muted-foreground hidden sm:block">
-                        Due {new Date(campaign.deadline).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                    <div className="flex items-center gap-4">
+                      {campaign.deadline && (
+                        <span className="text-xs text-muted-foreground hidden sm:block">
+                          Due {new Date(campaign.deadline).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      )}
+                      <span className={cn(
+                        "text-xs px-2.5 py-1 rounded-full font-medium border",
+                        statusStyles[campaign.status]
+                      )}>
+                        {statusLabel[campaign.status]}
                       </span>
-                    )}
-                    <span className={cn(
-                      "text-xs px-2.5 py-1 rounded-full font-medium border",
-                      statusStyles[campaign.status]
-                    )}>
-                      {statusLabel[campaign.status]}
-                    </span>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Recent Clients */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Recent Clients</h2>
+            <button
+              onClick={() => router.push("/clients")}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              View all <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+          <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+            {recentClients.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+                <p className="text-sm text-muted-foreground">No clients yet</p>
+                <Button size="sm" onClick={() => router.push("/clients/new")}>
+                  <Plus className="h-3.5 w-3.5 mr-1.5" />
+                  Add Client
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {recentClients.map((client) => (
+                  <div
+                    key={client.id}
+                    onClick={() => router.push(`/clients/${client.id}`)}
+                    className="flex items-center justify-between px-4 py-3.5 hover:bg-muted/40 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
+                        {client.name[0]}
+                      </div>
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-sm font-medium">{client.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {client.industry ?? "No industry"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {client.campaignCount} campaign{client.campaignCount !== 1 ? "s" : ""}
+                      </span>
+                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
 
     </div>

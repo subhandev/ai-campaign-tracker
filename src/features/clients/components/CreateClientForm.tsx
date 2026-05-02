@@ -79,8 +79,8 @@ export function CreateClientForm() {
     : "?";
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start w-full">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         {/* Form */}
         <div className="lg:col-span-3 space-y-6 min-w-0">
           {/* Client Name */}

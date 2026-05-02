@@ -4,7 +4,7 @@ import { CreateClientForm } from "@/features/clients/components/CreateClientForm
 
 export default function NewClientPage() {
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-8 w-full max-w-6xl">
       {/* Back Button */}
       <Link
         href="/clients"

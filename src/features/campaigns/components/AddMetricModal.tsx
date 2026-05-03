@@ -62,7 +62,7 @@ export function AddMetricModal({
           <Input placeholder="Clicks" type="number" {...register("clicks", { valueAsNumber: true })} />
           <Input placeholder="Spend ($)" type="number" {...register("spend", { valueAsNumber: true })} />
           <Input placeholder="Conversions" type="number" {...register("conversions", { valueAsNumber: true })} />
-          <Input placeholder="Revenue ($)" type="number" {...register("revenue", { valueAsNumber: true })} />
+          {/* <Input placeholder="Revenue ($)" type="number" {...register("revenue", { valueAsNumber: true })} /> */}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             Save Metrics

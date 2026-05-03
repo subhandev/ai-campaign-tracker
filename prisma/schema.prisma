@@ -21,16 +21,16 @@ model Workspace {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
-  
+
   isDemo Boolean @default(false)
-  
+
   clients Client[]
 }
 
 model Client {
   id          String    @id @default(cuid())
   workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   name     String
   company  String?
@@ -50,7 +50,7 @@ model Client {
 model Campaign {
   id       String @id @default(cuid())
   clientId String
-  client   Client @relation(fields: [clientId], references: [id])
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   name        String
   description String?
@@ -70,22 +70,22 @@ model Campaign {
 model Metric {
   id         String   @id @default(cuid())
   campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   impressions Int
   clicks      Int
   spend       Float
   conversions Int?
   date        DateTime
-  // revenue     Float?
 
   @@unique([campaignId, date])
+  @@index([campaignId, date])
 }
 
 model Insight {
   id         String   @id @default(cuid())
   campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   type      String
   content   String

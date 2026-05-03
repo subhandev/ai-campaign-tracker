@@ -6,25 +6,22 @@ import { DashboardContent } from "./DashboardContent";
 export default async function DashboardPage() {
   const { userId } = await auth();
 
-  let demoInitialState: "needs_seed" | "seeded" | "none" = "needs_seed";
+  let demoInitialState: "needs_seed" | "seeded" | "none" = "none";
 
   if (userId) {
     const user = await prisma.user.findUnique({ where: { clerkUserId: userId } });
 
-    if (user?.demoClearedAt) {
-      demoInitialState = "none";
-    } else {
+    if (!user?.demoClearedAt) {
       const demoWorkspace = user
         ? await prisma.workspace.findFirst({
             where: { userId: user.id, isDemo: true },
           })
         : null;
 
-      demoInitialState = !demoWorkspace
-        ? "needs_seed"
-        : demoWorkspace.seededAt
-        ? "seeded"
-        : "needs_seed";
+      demoInitialState =
+        !demoWorkspace         ? "needs_seed" :
+        demoWorkspace.seededAt ? "seeded"     :
+                                 "needs_seed";
     }
   }
 

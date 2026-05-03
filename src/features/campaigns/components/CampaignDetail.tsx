@@ -557,10 +557,7 @@ export function CampaignDetail({ campaign }: CampaignDetailProps) {
         open={openMetric}
         onClose={() => setOpenMetric(false)}
         campaignId={campaign.id}
-        onSuccess={() => {
-          // optional: trigger refresh if you already support it
-          window.location.reload();
-        }}
+        onSuccess={() => router.refresh()}
       />
     </>
   );

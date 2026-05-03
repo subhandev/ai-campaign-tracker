@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
       client: c.client,
     }));
 
-  const recentClients = clients.slice(0, 4).map((c) => ({
+  const recentClients = clients.slice(0, 5).map((c) => ({
     id: c.id,
     name: c.name,
     industry: c.industry,

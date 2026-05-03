@@ -10,6 +10,9 @@ export async function getCampaignsByWorkspace(workspaceId: string) {
       client: {
         select: { id: true, name: true, industry: true },
       },
+      metrics: {
+        select: { spend: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });

@@ -32,15 +32,20 @@ function BrandPanel() {
       {/* Logo */}
       <div className="relative z-10 flex items-center gap-2.5">
         <div
-          className="flex h-9 w-9 items-center justify-center rounded-lg shadow-lg"
+          className="flex items-center justify-center rounded-full shadow-lg"
           style={{
-            background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+            
             boxShadow: "0 4px 14px -2px rgba(99, 102, 241, 0.5)",
           }}
         >
-          <Sparkles className="h-5 w-5 text-white" strokeWidth={2.5} />
+          {/* <Sparkles className="h-5 w-5 text-white" strokeWidth={2.5} /> */}
+          <img
+            src="/branding/logo.svg"
+            alt="Marketiqo logo"
+            className="h-12 w-12 object-contain"
+          />
         </div>
-        <span className="text-base font-semibold tracking-tight">
+        <span className="text-4xl font-semibold tracking-tight">
           Marketiqo
         </span>
       </div>
@@ -53,8 +58,7 @@ function BrandPanel() {
             Turn campaign data into{" "}
             <span
               style={{
-                background:
-                  "linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)",
+                background: "linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -72,10 +76,7 @@ function BrandPanel() {
         {/* Benefits */}
         <ul className="space-y-3.5">
           {benefits.map((benefit) => (
-            <li
-              key={benefit}
-              className="flex items-start gap-3 text-white/90"
-            >
+            <li key={benefit} className="flex items-start gap-3 text-white/90">
               <span
                 className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
                 style={{

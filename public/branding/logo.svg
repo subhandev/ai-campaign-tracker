@@ -1,18 +1,71 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="160" height="160" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Definitions -->
   <defs>
-    <linearGradient id="grad" x1="0" y1="0" x2="64" y2="64">
-      <stop offset="0%" stop-color="#4F46E5"/>
+    <linearGradient id="bg" x1="10" y1="10" x2="130" y2="130">
+      <stop offset="0%" stop-color="#2563EB"/>
       <stop offset="100%" stop-color="#7C3AED"/>
     </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#grad)"/>
-  
-  <!-- Bars -->
-  <rect x="16" y="36" width="4" height="10" fill="white" rx="1"/>
-  <rect x="24" y="30" width="4" height="16" fill="white" rx="1"/>
-  <rect x="32" y="24" width="4" height="22" fill="white" rx="1"/>
-  <rect x="40" y="18" width="4" height="28" fill="white" rx="1"/>
-  
-  <!-- Line -->
-  <path d="M18 38 L26 32 L34 26 L42 20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Background Circle -->
+  <circle cx="70" cy="70" r="60" fill="url(#bg)"/>
+
+  <!-- Inner Content -->
+  <g transform="translate(70 70) scale(0.92) translate(-70 -70)">
+
+    <!-- Grid -->
+    <g opacity="0.12" stroke="white" stroke-width="1">
+      <line x1="28" y1="60" x2="112" y2="60"/>
+      <line x1="28" y1="80" x2="112" y2="80"/>
+      <line x1="28" y1="100" x2="112" y2="100"/>
+      <line x1="50" y1="30" x2="50" y2="110"/>
+      <line x1="70" y1="30" x2="70" y2="110"/>
+      <line x1="90" y1="30" x2="90" y2="110"/>
+    </g>
+
+    <!-- Bars -->
+    <rect x="34" y="78" width="12" height="28" rx="3" fill="white"/>
+    <rect x="54" y="60" width="12" height="46" rx="3" fill="white" opacity="0.9"/>
+    <rect x="74" y="45" width="12" height="61" rx="3" fill="white" opacity="0.85"/>
+    <rect x="94" y="35" width="12" height="71" rx="3" fill="white" opacity="0.8"/>
+
+    <!-- Main Curve (Glow Applied) -->
+    <path 
+      d="M28 95 
+         C50 75, 65 68, 80 58 
+         S100 45, 112 38" 
+      stroke="white" 
+      stroke-width="7.5" 
+      stroke-linecap="round"
+      filter="url(#glow)"
+    />
+
+    <!-- Secondary Curve -->
+    <path 
+      d="M28 100 
+         C50 88, 65 82, 80 78 
+         S100 72, 112 70" 
+      stroke="white" 
+      stroke-width="3.5" 
+      stroke-linecap="round"
+      opacity="0.5"
+    />
+
+    <!-- Nodes (Glow Applied) -->
+    <circle cx="54" cy="75" r="4" fill="white" filter="url(#glow)"/>
+    <circle cx="80" cy="58" r="4" fill="white" filter="url(#glow)"/>
+    <circle cx="108" cy="45" r="4.5" fill="white" filter="url(#glow)"/>
+
+  </g>
+
 </svg>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -74,7 +75,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       !disabled &&
         !active &&
-        "text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent)/0.4)] hover:text-white cursor-pointer"
+        "text-[hsl(var(--sidebar-foreground))] hover:bg-[hsl(var(--sidebar-accent)/0.4)] hover:text-white cursor-pointer",
     );
 
   return (
@@ -83,19 +84,28 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         "fixed left-0 top-0 h-full flex flex-col z-20 overflow-hidden",
         "bg-[hsl(var(--sidebar-background))] border-r border-[hsl(var(--sidebar-border))]",
         "transition-[width] duration-200 ease-in-out",
-        collapsed ? "w-14" : "w-64"
+        collapsed ? "w-14" : "w-64",
       )}
     >
       {/* Logo + toggle */}
       <div
         className={cn(
           "pt-4 pb-3 flex items-center shrink-0",
-          collapsed ? "justify-center px-2" : "justify-between px-3"
+          collapsed ? "justify-center px-2" : "justify-between px-3",
         )}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-gradient-brand flex items-center justify-center shrink-0">
-            <Sparkles className="text-white" size={14} />
+          <div className="flex items-center justify-center shrink-0">
+            {/* <Sparkles className="text-white" size={14} /> */}
+
+            <Image
+              src="/branding/logo.svg"
+              alt="Logo"
+              width={48}
+              height={48}
+              className="object-contain drop-shadow-md"
+              priority
+            />
           </div>
           {!collapsed && (
             <div className="flex flex-col ml-0.5 overflow-hidden">
@@ -137,10 +147,13 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       )}
 
       {/* NAV */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 flex flex-col gap-6">
+      <nav className="flex-1 overflow-y-auto px-2 py-3 flex flex-col gap-4 mt-4">
         {/* WORKSPACE */}
         {!collapsed && (
-          <p className="text-[10px] uppercase tracking-widest font-medium px-3">
+          <p
+            className="text-[11px] uppercase tracking-widest font-medium px-3"
+            style={{ color: "hsl(var(--sidebar-foreground) / 0.55)" }}
+          >
             Workspace
           </p>
         )}
@@ -201,11 +214,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-[hsl(var(--sidebar-border))] mx-2" />
+        <div className="h-px bg-[hsl(var(--sidebar-border))] mx-2 mb-4" />
 
         {/* MANAGE */}
         {!collapsed && (
-          <p className="text-[10px] uppercase tracking-widest font-medium px-3">
+          <p
+            className="text-[11px] uppercase tracking-widest font-medium px-3"
+            style={{ color: "hsl(var(--sidebar-foreground) / 0.55)" }}
+          >
             Manage
           </p>
         )}

@@ -61,7 +61,7 @@ export async function deleteCampaign(id: string): Promise<{ success: boolean }> 
 export async function createMetric(
   campaignId: string,
   data: CreateMetricInput
-): Promise<Metric> {
+): Promise<{ metric: Metric }> {
   const res = await fetch(`/api/campaigns/${campaignId}/metrics`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ export async function createMetric(
 
   if (!res.ok) {
     const error = await res.json();
-    throw new Error(error.message ?? "Failed to save metrics");
+    throw new Error(error.error ?? "Failed to save metrics");
   }
 
   return res.json();

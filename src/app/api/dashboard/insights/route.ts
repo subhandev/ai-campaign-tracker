@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/server/db/client";
 import { openai } from "@/lib/openai";
+import { resolveWorkspaceId } from "@/server/workspace/resolve-workspace";
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
@@ -9,21 +10,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const workspace = await prisma.workspace.findFirst({
-    where: { user: { clerkUserId: userId } },
-    orderBy: { createdAt: "asc" },
-  });
-  if (!workspace) {
+  const workspaceId = await resolveWorkspaceId(userId);
+  if (!workspaceId) {
     return NextResponse.json({ error: "No workspace" }, { status: 404 });
   }
 
   const [clients, campaigns] = await Promise.all([
     prisma.client.findMany({
-      where: { workspaceId: workspace.id },
+      where: { workspaceId },
       select: { id: true, status: true },
     }),
     prisma.campaign.findMany({
-      where: { client: { workspaceId: workspace.id } },
+      where: { client: { workspaceId } },
       select: { name: true, status: true, platform: true, goal: true, deadline: true },
       orderBy: { createdAt: "desc" },
       take: 10,

@@ -37,8 +37,8 @@ export function Header() {
       style={{ background: "hsl(var(--background) / 0.85)" }}
     >
       {/* Left */}
-      <div className="flex items-center gap-2 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg px-3 h-9 w-80">
-        <Search size={14} className="text-[hsl(var(--muted-foreground))]" />
+      <div className="flex items-center gap-2 bg-muted/50 border border-border rounded-lg px-3 h-10 w-80 focus-within:bg-background focus-within:ring-1 focus-within:ring-ring transition-colors">
+        <Search size={14} className="text-[hsl(var(--muted-foreground))] shrink-0" />
         <input
           placeholder="Search..."
           className="bg-transparent text-sm outline-none flex-1"

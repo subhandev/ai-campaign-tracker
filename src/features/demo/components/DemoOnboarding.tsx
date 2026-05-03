@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { DemoSeedOverlay } from "./DemoSeedOverlay";
 
 type DemoState = "idle" | "seeding" | "completing" | "ready" | "cleared";
@@ -11,7 +10,6 @@ export function DemoOnboarding({
 }: {
   initialState: "needs_seed" | "seeded" | "none";
 }) {
-  const router = useRouter();
   const [state, setState] = useState<DemoState>(
     initialState === "needs_seed" ? "seeding" :
     initialState === "seeded"     ? "ready"   : "idle"
@@ -65,7 +63,7 @@ export function DemoOnboarding({
   if (state === "seeding" || state === "completing") {
     return (
       <DemoSeedOverlay
-        onComplete={() => router.refresh()}
+        onComplete={() => window.location.reload()}
         onReadyToComplete={(fn) => { overlayCompleteRef.current = fn; }}
       />
     );

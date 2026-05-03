@@ -29,6 +29,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CampaignStatus } from "@/features/campaigns/types";
+import { DemoInitializer } from "@/features/demo/components/DemoInitializer";
+import { DemoBanner } from "@/features/demo/components/DemoBanner";
 
 // ── API response type ─────────────────────────────────────────────────────────
 
@@ -527,6 +529,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
+      <DemoInitializer />
+      <DemoBanner />
 
       {/* ── Page header ── */}
       <div className="flex items-start justify-between">

@@ -31,10 +31,10 @@ const workspaceEnabled: NavItem[] = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Clients", icon: Users, href: "/clients" },
   { label: "Campaigns", icon: Megaphone, href: "/campaigns" },
-  { label: "AI Reports", icon: Sparkles, href: "/ai-reports", badge: "AI" },
 ];
 
 const workspaceSoon: NavItem[] = [
+  // { label: "AI Reports", icon: Sparkles, href: "/ai-reports", badge: "AI" },
   { label: "Tasks", icon: CheckSquare, href: "/tasks", disabled: true },
   { label: "Calendar", icon: Calendar, href: "/calendar", disabled: true },
   { label: "Reports", icon: BarChart2, href: "/reports", disabled: true },

@@ -26,161 +26,152 @@ interface CampaignTableProps {
 }
 
 const statusStyles: Record<CampaignStatus, string> = {
-  planned:   "bg-blue-50 text-blue-700 border-blue-200",
-  active:    "bg-green-50 text-green-700 border-green-200",
-  at_risk:   "bg-orange-50 text-orange-700 border-orange-200",
+  planned: "bg-blue-50 text-blue-700 border-blue-200",
+  active: "bg-green-50 text-green-700 border-green-200",
+  at_risk: "bg-orange-50 text-orange-700 border-orange-200",
   completed: "bg-zinc-100 text-zinc-500 border-zinc-200",
-  archived:  "bg-zinc-100 text-zinc-400 border-zinc-200",
+  archived: "bg-zinc-100 text-zinc-400 border-zinc-200",
 };
 
 const statusLabel: Record<CampaignStatus, string> = {
-  planned:   "Planned",
-  active:    "Active",
-  at_risk:   "At Risk",
+  planned: "Planned",
+  active: "Active",
+  at_risk: "At Risk",
   completed: "Completed",
-  archived:  "Archived",
+  archived: "Archived",
 };
 
 export function CampaignTable({ campaigns, onDelete }: CampaignTableProps) {
   const router = useRouter();
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow className="hover:bg-transparent border-border">
-          <TableHead className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-            Campaign
-          </TableHead>
-          <TableHead className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-            Client
-          </TableHead>
-          <TableHead className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-            Platform
-          </TableHead>
-          <TableHead className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-            Status
-          </TableHead>
-          <TableHead className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-            Deadline
-          </TableHead>
-          <TableHead />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {campaigns.map((campaign) => (
-          <TableRow
-            key={campaign.id}
-            className="hover:bg-muted/40 cursor-pointer border-border transition-colors"
-            onClick={() => router.push(`/campaigns/${campaign.id}`)}
-          >
-            {/* Campaign */}
-            <TableCell>
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm font-medium">{campaign.name}</span>
-                {campaign.description && (
-                  <span className="text-xs text-muted-foreground line-clamp-1 max-w-xs">
-                    {campaign.description}
-                  </span>
-                )}
-              </div>
-            </TableCell>
-
-            {/* Client */}
-            <TableCell>
-              {campaign.client ? (
-                <div className="flex flex-col leading-tight">
-                  <span className="text-sm font-medium">
-                    {campaign.client.name}
-                  </span>
-                  {campaign.client.industry && (
-                    <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium w-fit mt-0.5">
-                      {campaign.client.industry}
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <span className="text-muted-foreground text-sm">—</span>
-              )}
-            </TableCell>
-
-            {/* Platform */}
-            <TableCell>
-              <span className="text-sm text-muted-foreground">
-                {campaign.platform}
-              </span>
-            </TableCell>
-
-            {/* Status */}
-            <TableCell>
-              <span
-                className={cn(
-                  "text-xs px-2.5 py-1 rounded-full font-medium border",
-                  statusStyles[campaign.status]
-                )}
-              >
-                {statusLabel[campaign.status]}
-              </span>
-            </TableCell>
-
-            {/* Deadline */}
-            <TableCell>
-              {campaign.deadline ? (
-                <span className="text-sm text-muted-foreground">
-                  {new Date(campaign.deadline).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-              ) : (
-                <span className="text-muted-foreground text-sm">—</span>
-              )}
-            </TableCell>
-
-            {/* Actions */}
-            <TableCell
-              className="text-right"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-end gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={() => router.push(`/campaigns/${campaign.id}`)}
+    <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-card overflow-hidden">
+      <table className="w-full">
+        {/* Header */}
+        <thead className="bg-[hsl(var(--muted)/0.5)] border-b border-[hsl(var(--border))]">
+          <tr>
+            {["Campaign", "Client", "Platform", "Due", "Status", ""].map(
+              (h) => (
+                <th
+                  key={h}
+                  className="text-[10px] uppercase tracking-wider font-medium text-[hsl(var(--muted-foreground))] px-5 py-2.5 text-left"
                 >
-                  View <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => router.push(`/campaigns/${campaign.id}`)}
-                    >
-                      View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => router.push(`/campaigns/${campaign.id}?edit=true`)}
-                    >
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => onDelete(campaign.id)}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+                  {h}
+                </th>
+              ),
+            )}
+          </tr>
+        </thead>
+
+        {/* Body */}
+        <tbody>
+          {campaigns.map((c) => (
+            <tr
+              key={c.id}
+              onClick={() => router.push(`/campaigns/${c.id}`)}
+              className="border-b border-[hsl(var(--border)/0.5)] hover:bg-[hsl(var(--muted)/0.4)] cursor-pointer transition-colors last:border-0"
+            >
+              {/* Campaign */}
+              <td className="px-5 py-3 text-sm font-medium text-[hsl(var(--foreground))] max-w-[240px]">
+                <span className="truncate block">{c.name}</span>
+              </td>
+
+              {/* Client */}
+              <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
+                {c.client?.name ?? "—"}
+              </td>
+
+              {/* Platform */}
+              <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
+                {c.platform}
+              </td>
+
+              {/* Due */}
+              <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
+                {c.deadline
+                  ? new Date(c.deadline).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "—"}
+              </td>
+
+              {/* Status */}
+              <td className="px-5 py-3">
+                <span
+                  className={cn(
+                    "text-xs px-2.5 py-1 rounded-full font-medium border",
+                    c.status === "active" &&
+                      "bg-[hsl(var(--success-soft))] text-[hsl(var(--success))] border-[hsl(var(--success)/0.3)]",
+                    c.status === "at_risk" &&
+                      "bg-[hsl(var(--warning-soft))] text-[hsl(var(--warning-foreground))] border-[hsl(var(--warning)/0.3)]",
+                    c.status === "completed" &&
+                      "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border-[hsl(var(--border))]",
+                    c.status === "archived" &&
+                      "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border-[hsl(var(--border))]",
+                    c.status === "planned" &&
+                      "bg-[hsl(var(--brand-soft))] text-[hsl(var(--brand))] border-[hsl(var(--brand)/0.3)]",
+                  )}
+                >
+                  {c.status.replace("_", " ")}
+                </span>
+              </td>
+
+              {/* Actions */}
+              <td
+                className="px-5 py-3 text-right"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-end gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => router.push(`/campaigns/${c.id}`)}
+                  >
+                    View <ArrowRight className="ml-1 h-3 w-3" />
+                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/campaigns/${c.id}`)}
+                      >
+                        View
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(`/campaigns/${c.id}?edit=true`)
+                        }
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      {onDelete && (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => onDelete(c.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

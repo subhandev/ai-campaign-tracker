@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -21,37 +22,139 @@ import {
   Store,
   AlertCircle,
   Info,
+  Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CampaignStatus } from "@/features/campaigns/types";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── API response type ─────────────────────────────────────────────────────────
 
-type AlertSeverity = "critical" | "warning" | "info" | "none";
+interface DashboardData {
+  stats: {
+    totalClients: number;
+    activeCampaigns: number;
+    atRiskCampaigns: number;
+    completedCampaigns: number;
+    totalSpend: number;
+  };
+  health: {
+    active: number;
+    at_risk: number;
+    completed: number;
+    planned: number;
+    archived: number;
+    total: number;
+  };
+  recentCampaigns: {
+    id: string;
+    name: string;
+    platform: string;
+    status: CampaignStatus;
+    deadline: string | null;
+    client: { id: string; name: string; industry: string | null } | null;
+  }[];
+  atRiskCampaignsList: {
+    id: string;
+    name: string;
+    platform: string;
+    deadline: string | null;
+    client: { id: string; name: string; industry: string | null } | null;
+  }[];
+  recentClients: {
+    id: string;
+    name: string;
+    industry: string | null;
+    status: string;
+    campaignCount: number;
+  }[];
+}
 
-type CampaignStatus = "at_risk" | "active" | "completed" | "archived" | "planned";
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatSpend(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
+  return `$${n.toLocaleString()}`;
+}
+
+function fmtDeadline(d: string | null): string {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function getNameInitials(name: string): string {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
+
+function daysLabel(n: number | null): string {
+  if (n === null) return "No deadline set";
+  if (n < 0) return `Overdue by ${Math.abs(n)} day${Math.abs(n) !== 1 ? "s" : ""}`;
+  if (n === 0) return "Due today";
+  return `${n} day${n !== 1 ? "s" : ""} remaining`;
+}
+
+const OWNER_BG_POOL = [
+  "bg-[hsl(var(--primary))]",
+  "bg-[hsl(var(--brand))]",
+  "bg-[hsl(var(--success))]",
+  "bg-[hsl(var(--warning))]",
+];
+
+function ownerBgFromName(name: string): string {
+  let hash = 0;
+  for (const c of name) hash = ((hash * 31) + c.charCodeAt(0)) & 0xffff;
+  return OWNER_BG_POOL[hash % OWNER_BG_POOL.length];
+}
+
+const INDUSTRY_CONFIG: Record<
+  string,
+  { icon: React.ElementType; iconBg: string; iconColor: string }
+> = {
+  ecommerce: {
+    icon: ShoppingBag,
+    iconBg: "bg-[hsl(var(--brand-soft))]",
+    iconColor: "text-[hsl(var(--brand))]",
+  },
+  education: {
+    icon: GraduationCap,
+    iconBg: "bg-[hsl(var(--warning-soft))]",
+    iconColor: "text-[hsl(var(--warning))]",
+  },
+  saas: {
+    icon: Rocket,
+    iconBg: "bg-[hsl(var(--accent))]",
+    iconColor: "text-[hsl(var(--accent-foreground))]",
+  },
+  retail: {
+    icon: Store,
+    iconBg: "bg-[hsl(var(--success-soft))]",
+    iconColor: "text-[hsl(var(--success))]",
+  },
+};
+
+function getIndustryConfig(industry: string | null) {
+  const key = (industry ?? "").toLowerCase();
+  return (
+    INDUSTRY_CONFIG[key] ?? {
+      icon: Building2,
+      iconBg: "bg-[hsl(var(--muted))]",
+      iconColor: "text-[hsl(var(--muted-foreground))]",
+    }
+  );
+}
 
 // ── Severity system ───────────────────────────────────────────────────────────
 
-const ALERT_SEVERITY_MAP: Record<string, AlertSeverity> = {
-  failed: "critical",
-  critical: "critical",
-  at_risk: "warning",
-  overdue: "warning",
-  needs_review: "info",
-  pending: "info",
-};
-
-function getAlertSeverity(status: string): AlertSeverity {
-  return ALERT_SEVERITY_MAP[status] ?? "none";
-}
-
-function getHighestSeverity(alerts: typeof MOCK_ALERTS): AlertSeverity {
-  const order: AlertSeverity[] = ["critical", "warning", "info", "none"];
-  for (const level of order) {
-    if (alerts.some((a) => getAlertSeverity(a.status) === level)) return level;
-  }
-  return "none";
-}
+type AlertSeverity = "critical" | "warning" | "info" | "none";
 
 type SeverityConfig = {
   cardBg: string;
@@ -144,27 +247,32 @@ const STATUS_CONFIG: Record<CampaignStatus, StatusConfig> = {
   active: {
     label: "Active",
     dot: "bg-[hsl(var(--success))]",
-    badge: "bg-[hsl(var(--success-soft))] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.3)]",
+    badge:
+      "bg-[hsl(var(--success-soft))] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.3)]",
   },
   at_risk: {
     label: "At Risk",
     dot: "bg-[hsl(var(--warning))]",
-    badge: "bg-[hsl(var(--warning-soft))] text-[hsl(var(--warning-foreground))] border border-[hsl(var(--warning)/0.3)]",
+    badge:
+      "bg-[hsl(var(--warning-soft))] text-[hsl(var(--warning-foreground))] border border-[hsl(var(--warning)/0.3)]",
   },
   completed: {
     label: "Completed",
     dot: "bg-[hsl(var(--muted-foreground)/0.5)]",
-    badge: "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]",
+    badge:
+      "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]",
   },
   archived: {
     label: "Archived",
     dot: "bg-[hsl(var(--muted-foreground)/0.4)]",
-    badge: "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]",
+    badge:
+      "bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]",
   },
   planned: {
     label: "Planned",
     dot: "bg-[hsl(var(--brand))]",
-    badge: "bg-[hsl(var(--brand-soft))] text-[hsl(var(--brand))] border border-[hsl(var(--brand)/0.3)]",
+    badge:
+      "bg-[hsl(var(--brand-soft))] text-[hsl(var(--brand))] border border-[hsl(var(--brand)/0.3)]",
   },
 };
 
@@ -183,185 +291,52 @@ function StatusBadge({ status }: { status: CampaignStatus }) {
   );
 }
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
+// ── Health segment color config ───────────────────────────────────────────────
 
-const MOCK_ALERTS = [
-  {
-    id: 1,
-    name: "Instagram Growth Campaign",
-    client: "GreenLeaf Organics",
-    platform: "Meta",
-    daysRemaining: 12,
-    status: "at_risk" as const,
-  },
+const HEALTH_SEGMENTS = [
+  { label: "Active",    key: "active" as const,    bar: "bg-[hsl(var(--success))]",              dot: "bg-[hsl(var(--success))]" },
+  { label: "At Risk",  key: "at_risk" as const,   bar: "bg-[hsl(var(--destructive))]",          dot: "bg-[hsl(var(--destructive))]" },
+  { label: "Completed",key: "completed" as const, bar: "bg-[hsl(var(--brand))]",                dot: "bg-[hsl(var(--brand))]" },
+  { label: "Planned",  key: "planned" as const,   bar: "bg-[hsl(var(--warning))]",              dot: "bg-[hsl(var(--warning))]" },
+  { label: "Archived", key: "archived" as const,  bar: "bg-[hsl(var(--muted-foreground)/0.25)]",dot: "bg-[hsl(var(--muted-foreground)/0.25)]" },
 ];
 
-const MOCK_STATS = [
-  {
-    label: "Active Campaigns",
-    value: "4",
-    trend: "+12% vs last month",
-    up: true,
-    icon: MessageSquare,
-    iconBg: "bg-[hsl(var(--brand-soft))]",
-    iconColor: "text-[hsl(var(--brand))]",
-    trendColor: "text-[hsl(var(--success))]",
-    href: "/campaigns",
-  },
-  {
-    label: "At Risk",
-    value: "1",
-    trend: "+1 vs last month",
-    up: false,
-    icon: AlertTriangle,
-    iconBg: "bg-[hsl(var(--warning-soft))]",
-    iconColor: "text-[hsl(var(--warning))]",
-    trendColor: "text-[hsl(var(--warning))]",
-    href: "/campaigns",
-  },
-  {
-    label: "Completed",
-    value: "2",
-    trend: "+2 vs last month",
-    up: true,
-    icon: CheckCircle2,
-    iconBg: "bg-[hsl(var(--success-soft))]",
-    iconColor: "text-[hsl(var(--success))]",
-    trendColor: "text-[hsl(var(--success))]",
-    href: "/campaigns",
-  },
-  {
-    label: "Total Clients",
-    value: "5",
-    trend: "+1 vs last month",
-    up: true,
-    icon: Users,
-    iconBg: "bg-[hsl(var(--info-soft))]",
-    iconColor: "text-[hsl(var(--info))]",
-    trendColor: "text-[hsl(var(--success))]",
-    href: "/clients",
-  },
-  {
-    label: "Total Spend",
-    value: "$73.4K",
-    trend: "+8.2% vs last month",
-    up: true,
-    icon: DollarSign,
-    iconBg: "bg-[hsl(var(--brand-soft))]",
-    iconColor: "text-[hsl(var(--brand))]",
-    trendColor: "text-[hsl(var(--success))]",
-    href: "/campaigns",
-  },
-];
+// ── Loading skeleton ──────────────────────────────────────────────────────────
 
-const MOCK_CAMPAIGNS: {
-  id: string;
-  name: string;
-  client: string;
-  platform: string;
-  due: string;
-  status: CampaignStatus;
-  ownerInitials: string;
-  ownerBg: string;
-}[] = [
-  {
-    id: "1",
-    name: "Instagram Growth Campaign",
-    client: "GreenLeaf Organics",
-    platform: "Meta",
-    due: "May 15",
-    status: "at_risk",
-    ownerInitials: "SA",
-    ownerBg: "bg-[hsl(var(--primary))]",
-  },
-  {
-    id: "2",
-    name: "Summer Sale Launch 2026",
-    client: "Nike Regional",
-    platform: "Meta",
-    due: "Jul 31",
-    status: "active",
-    ownerInitials: "JH",
-    ownerBg: "bg-[hsl(var(--brand))]",
-  },
-  {
-    id: "3",
-    name: "Brand Awareness — YouTube",
-    client: "Nike Regional",
-    platform: "YouTube",
-    due: "Mar 31",
-    status: "completed",
-    ownerInitials: "NO",
-    ownerBg: "bg-[hsl(var(--success))]",
-  },
-  {
-    id: "4",
-    name: "Nike Regional Launch",
-    client: "Nike Regional",
-    platform: "Twitter/X",
-    due: "Jun 15",
-    status: "archived",
-    ownerInitials: "JH",
-    ownerBg: "bg-[hsl(var(--brand))]",
-  },
-  {
-    id: "5",
-    name: "EduLearn Spring",
-    client: "EduLearn",
-    platform: "Meta",
-    due: "Aug 12",
-    status: "archived",
-    ownerInitials: "NO",
-    ownerBg: "bg-[hsl(var(--success))]",
-  },
-];
-
-const MOCK_CLIENTS = [
-  {
-    id: "1",
-    name: "Nike Regional",
-    industry: "Ecommerce",
-    campaigns: 3,
-    icon: ShoppingBag,
-    iconBg: "bg-[hsl(var(--brand-soft))]",
-    iconColor: "text-[hsl(var(--brand))]",
-  },
-  {
-    id: "2",
-    name: "EduLearn",
-    industry: "Education",
-    campaigns: 2,
-    icon: GraduationCap,
-    iconBg: "bg-[hsl(var(--warning-soft))]",
-    iconColor: "text-[hsl(var(--warning))]",
-  },
-  {
-    id: "3",
-    name: "StartupX",
-    industry: "SaaS",
-    campaigns: 2,
-    icon: Rocket,
-    iconBg: "bg-[hsl(var(--accent))]",
-    iconColor: "text-[hsl(var(--accent-foreground))]",
-  },
-  {
-    id: "4",
-    name: "Local Mart",
-    industry: "Retail",
-    campaigns: 1,
-    icon: Store,
-    iconBg: "bg-[hsl(var(--success-soft))]",
-    iconColor: "text-[hsl(var(--success))]",
-  },
-];
-
-const HEALTH_LEGEND = [
-  { label: "Active", dot: "bg-[hsl(var(--success))]", pct: "40%", count: 4, flex: "flex-[4]", bar: "bg-[hsl(var(--success))]" },
-  { label: "At Risk", dot: "bg-[hsl(var(--destructive))]", pct: "10%", count: 1, flex: "flex-[1]", bar: "bg-[hsl(var(--destructive))]" },
-  { label: "Completed", dot: "bg-[hsl(var(--brand))]", pct: "20%", count: 2, flex: "flex-[2]", bar: "bg-[hsl(var(--brand))]" },
-  { label: "Planned", dot: "bg-[hsl(var(--warning))]", pct: "10%", count: 1, flex: "flex-[1]", bar: "bg-[hsl(var(--warning))]" },
-  { label: "Archived", dot: "bg-[hsl(var(--muted-foreground)/0.25)]", pct: "20%", count: 2, flex: "flex-[2]", bar: "bg-[hsl(var(--muted-foreground)/0.25)]" },
-];
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-5">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+        <Skeleton className="h-4 w-36 mt-1.5" />
+      </div>
+      <div className="grid grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="bg-[hsl(var(--card))] rounded-xl border border-[hsl(var(--border))] p-5 shadow-card space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+            </div>
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-3 w-28" />
+          </div>
+        ))}
+      </div>
+      <div className="grid gap-4" style={{ gridTemplateColumns: "2fr 3fr" }}>
+        <Skeleton className="h-52 rounded-xl" />
+        <Skeleton className="h-52 rounded-xl" />
+      </div>
+      <div className="grid grid-cols-[1fr_300px] gap-4">
+        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-64 rounded-xl" />
+      </div>
+      <Skeleton className="h-36 rounded-xl" />
+    </div>
+  );
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -370,9 +345,191 @@ export default function DashboardPage() {
   const { user } = useUser();
   const firstName = user?.firstName ?? user?.username ?? "there";
 
-  const severity = getHighestSeverity(MOCK_ALERTS);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  // Captured when data loads so deadline diffs are stable across re-renders
+  const [fetchedAt, setFetchedAt] = useState(0);
+
+  useEffect(() => {
+    fetch("/api/dashboard")
+      .then((r) => r.json())
+      .then((d: DashboardData) => {
+        setData(d);
+        setFetchedAt(Date.now());
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <LoadingSkeleton />;
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-64 text-[hsl(var(--muted-foreground))] text-sm">
+        Failed to load dashboard data.
+      </div>
+    );
+  }
+
+  const { stats, health, recentCampaigns, atRiskCampaignsList, recentClients } = data;
+
+  // ── Stat cards ──────────────────────────────────────────────────────────────
+
+  const statCards = [
+    {
+      label: "Active Campaigns",
+      value: String(stats.activeCampaigns),
+      trend:
+        stats.activeCampaigns > 0
+          ? `${stats.activeCampaigns} running now`
+          : "No active campaigns",
+      up: true,
+      icon: MessageSquare,
+      iconBg: "bg-[hsl(var(--brand-soft))]",
+      iconColor: "text-[hsl(var(--brand))]",
+      trendColor: "text-[hsl(var(--success))]",
+      href: "/campaigns",
+    },
+    {
+      label: "At Risk",
+      value: String(stats.atRiskCampaigns),
+      trend:
+        stats.atRiskCampaigns === 0
+          ? "All on track"
+          : `${stats.atRiskCampaigns} need${stats.atRiskCampaigns === 1 ? "s" : ""} review`,
+      up: stats.atRiskCampaigns === 0,
+      icon: AlertTriangle,
+      iconBg: "bg-[hsl(var(--warning-soft))]",
+      iconColor: "text-[hsl(var(--warning))]",
+      trendColor:
+        stats.atRiskCampaigns === 0
+          ? "text-[hsl(var(--success))]"
+          : "text-[hsl(var(--warning))]",
+      href: "/campaigns",
+    },
+    {
+      label: "Completed",
+      value: String(stats.completedCampaigns),
+      trend: `${stats.completedCampaigns} delivered`,
+      up: true,
+      icon: CheckCircle2,
+      iconBg: "bg-[hsl(var(--success-soft))]",
+      iconColor: "text-[hsl(var(--success))]",
+      trendColor: "text-[hsl(var(--success))]",
+      href: "/campaigns",
+    },
+    {
+      label: "Total Clients",
+      value: String(stats.totalClients),
+      trend: `${stats.totalClients} registered`,
+      up: true,
+      icon: Users,
+      iconBg: "bg-[hsl(var(--info-soft))]",
+      iconColor: "text-[hsl(var(--info))]",
+      trendColor: "text-[hsl(var(--success))]",
+      href: "/clients",
+    },
+    {
+      label: "Total Spend",
+      value: formatSpend(stats.totalSpend),
+      trend: "Across all campaigns",
+      up: true,
+      icon: DollarSign,
+      iconBg: "bg-[hsl(var(--brand-soft))]",
+      iconColor: "text-[hsl(var(--brand))]",
+      trendColor: "text-[hsl(var(--success))]",
+      href: "/campaigns",
+    },
+  ];
+
+  // ── Needs Attention alerts ─────────────────────────────────────────────────
+
+  const alerts = atRiskCampaignsList.map((c) => {
+    const daysRemaining = c.deadline
+      ? Math.ceil(
+          (new Date(c.deadline).getTime() - fetchedAt) / (1000 * 60 * 60 * 24)
+        )
+      : null;
+    return {
+      id: c.id,
+      name: c.name,
+      client: c.client?.name ?? "Unknown",
+      platform: c.platform,
+      daysRemaining,
+      // overdue = critical, otherwise warning
+      status:
+        daysRemaining !== null && daysRemaining < 0 ? "overdue" : "at_risk",
+    };
+  });
+
+  const severity: AlertSeverity =
+    alerts.length === 0
+      ? "none"
+      : alerts.some((a) => a.daysRemaining !== null && a.daysRemaining < 0)
+      ? "critical"
+      : "warning";
+
   const sev = SEVERITY_CONFIG[severity];
   const SevIcon = sev.IconComponent;
+
+  // ── Recent Campaigns ───────────────────────────────────────────────────────
+
+  const campaigns = recentCampaigns.map((c) => ({
+    id: c.id,
+    name: c.name,
+    client: c.client?.name ?? "—",
+    platform: c.platform,
+    due: fmtDeadline(c.deadline),
+    status: c.status,
+    ownerInitials: getNameInitials(c.client?.name ?? c.name),
+    ownerBg: ownerBgFromName(c.client?.name ?? c.id),
+  }));
+
+  // ── Recent Clients ─────────────────────────────────────────────────────────
+
+  const clients = recentClients.map((c) => ({
+    id: c.id,
+    name: c.name,
+    industry: c.industry ?? "General",
+    campaigns: c.campaignCount,
+    ...getIndustryConfig(c.industry),
+  }));
+
+  // ── Campaign Health ────────────────────────────────────────────────────────
+
+  const healthLegend = HEALTH_SEGMENTS.map((seg) => {
+    const value = health[seg.key];
+    return {
+      ...seg,
+      value,
+      pct: `${health.total > 0 ? Math.round((value / health.total) * 100) : 0}%`,
+      count: value,
+    };
+  });
+
+  // ── AI Summary insights ────────────────────────────────────────────────────
+
+  const aiInsights = [
+    {
+      icon: Zap,
+      iconClass: "text-[hsl(var(--brand))]",
+      text: `${stats.activeCampaigns} active campaign${stats.activeCampaigns !== 1 ? "s" : ""} currently running across your portfolio.`,
+    },
+    {
+      icon: AlertTriangle,
+      iconClass: "text-[hsl(var(--warning))]",
+      text:
+        stats.atRiskCampaigns > 0
+          ? `${stats.atRiskCampaigns} campaign${stats.atRiskCampaigns !== 1 ? "s" : ""} need${stats.atRiskCampaigns === 1 ? "s" : ""} attention — review at-risk campaigns now.`
+          : "All campaigns are on track — no immediate action needed.",
+    },
+    {
+      icon: DollarSign,
+      iconClass: "text-[hsl(var(--success))]",
+      text: `${formatSpend(stats.totalSpend)} total spend tracked across all clients.`,
+    },
+  ];
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-5">
@@ -397,7 +554,7 @@ export default function DashboardPage() {
 
       {/* ── Row 1 — KPI cards ── */}
       <div className="grid grid-cols-5 gap-4">
-        {MOCK_STATS.map((stat) => (
+        {statCards.map((stat) => (
           <div
             key={stat.label}
             onClick={() => router.push(stat.href)}
@@ -407,7 +564,12 @@ export default function DashboardPage() {
               <p className="text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wide">
                 {stat.label}
               </p>
-              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", stat.iconBg)}>
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                  stat.iconBg
+                )}
+              >
                 <stat.icon size={16} className={stat.iconColor} />
               </div>
             </div>
@@ -438,7 +600,12 @@ export default function DashboardPage() {
           )}
         >
           <div className="flex items-center gap-2">
-            <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", sev.iconBg)}>
+            <div
+              className={cn(
+                "w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
+                sev.iconBg
+              )}
+            >
               <SevIcon size={15} className={sev.iconColor} />
             </div>
             <div>
@@ -446,12 +613,13 @@ export default function DashboardPage() {
                 Needs Attention
               </p>
               <p className={cn("text-xs", sev.subtitleColor)}>
-                {MOCK_ALERTS.length} campaign{MOCK_ALERTS.length !== 1 ? "s" : ""} require{MOCK_ALERTS.length === 1 ? "s" : ""} action
+                {alerts.length} campaign{alerts.length !== 1 ? "s" : ""} require
+                {alerts.length === 1 ? "s" : ""} action
               </p>
             </div>
           </div>
 
-          {MOCK_ALERTS.length === 0 ? (
+          {alerts.length === 0 ? (
             <div className="flex flex-col items-center text-center gap-2 py-6 mt-3">
               <CheckCircle2 size={28} className="text-[hsl(var(--success))]" />
               <p className="text-sm font-medium text-[hsl(var(--foreground))]">
@@ -462,7 +630,7 @@ export default function DashboardPage() {
               </p>
             </div>
           ) : (
-            MOCK_ALERTS.map((alert) => (
+            alerts.map((alert) => (
               <div
                 key={alert.id}
                 className={cn(
@@ -475,7 +643,7 @@ export default function DashboardPage() {
                   <span className="font-medium text-sm text-[hsl(var(--foreground))] truncate">
                     {alert.name}
                   </span>
-                  <StatusBadge status={alert.status as CampaignStatus} />
+                  <StatusBadge status="at_risk" />
                 </div>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">
                   {alert.client} · {alert.platform}
@@ -483,7 +651,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-1 mt-1.5">
                   <Clock size={11} className="text-[hsl(var(--muted-foreground))]" />
                   <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {alert.daysRemaining} days remaining
+                    {daysLabel(alert.daysRemaining)}
                   </span>
                 </div>
               </div>
@@ -515,7 +683,10 @@ export default function DashboardPage() {
               <p className="text-sm font-semibold text-[hsl(var(--accent-foreground))]">
                 AI Summary
               </p>
-              <p className="text-xs mt-0.5" style={{ color: "hsl(var(--brand) / 0.7)" }}>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: "hsl(var(--brand) / 0.7)" }}
+              >
                 Updated just now
               </p>
             </div>
@@ -525,23 +696,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-2 mt-3">
-            {[
-              {
-                icon: Zap,
-                iconClass: "text-[hsl(var(--brand))]",
-                text: "4 active campaigns currently running across your portfolio.",
-              },
-              {
-                icon: AlertTriangle,
-                iconClass: "text-[hsl(var(--warning))]",
-                text: "1 campaign needs attention — review at-risk campaigns now.",
-              },
-              {
-                icon: DollarSign,
-                iconClass: "text-[hsl(var(--success))]",
-                text: "$73,400 total spend tracked across all clients.",
-              },
-            ].map(({ icon: Icon, iconClass, text }) => (
+            {aiInsights.map(({ icon: Icon, iconClass, text }) => (
               <div
                 key={text}
                 className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/60 border border-[hsl(var(--brand)/0.12)] backdrop-blur-sm"
@@ -591,55 +746,63 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <table className="w-full">
-            <thead className="bg-[hsl(var(--muted)/0.5)] border-b border-[hsl(var(--border))]">
-              <tr>
-                {["Campaign", "Client", "Platform", "Due", "Status", "Owner"].map((h) => (
-                  <th
-                    key={h}
-                    className="text-[10px] uppercase tracking-wider font-medium text-[hsl(var(--muted-foreground))] px-5 py-2.5 text-left"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_CAMPAIGNS.map((c) => (
-                <tr
-                  key={c.id}
-                  onClick={() => router.push(`/campaigns/${c.id}`)}
-                  className="border-b border-[hsl(var(--border)/0.5)] hover:bg-[hsl(var(--muted)/0.4)] cursor-pointer transition-colors last:border-0"
-                >
-                  <td className="px-5 py-3 text-sm font-medium text-[hsl(var(--foreground))] max-w-[200px]">
-                    <span className="truncate block">{c.name}</span>
-                  </td>
-                  <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
-                    {c.client}
-                  </td>
-                  <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
-                    {c.platform}
-                  </td>
-                  <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
-                    {c.due}
-                  </td>
-                  <td className="px-5 py-3">
-                    <StatusBadge status={c.status} />
-                  </td>
-                  <td className="px-5 py-3">
-                    <div
-                      className={cn(
-                        "w-7 h-7 rounded-full text-white text-[10px] font-semibold flex items-center justify-center",
-                        c.ownerBg
-                      )}
-                    >
-                      {c.ownerInitials}
-                    </div>
-                  </td>
+          {campaigns.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-[hsl(var(--muted-foreground))]">
+              No campaigns yet.
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead className="bg-[hsl(var(--muted)/0.5)] border-b border-[hsl(var(--border))]">
+                <tr>
+                  {["Campaign", "Client", "Platform", "Due", "Status", "Owner"].map(
+                    (h) => (
+                      <th
+                        key={h}
+                        className="text-[10px] uppercase tracking-wider font-medium text-[hsl(var(--muted-foreground))] px-5 py-2.5 text-left"
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {campaigns.map((c) => (
+                  <tr
+                    key={c.id}
+                    onClick={() => router.push(`/campaigns/${c.id}`)}
+                    className="border-b border-[hsl(var(--border)/0.5)] hover:bg-[hsl(var(--muted)/0.4)] cursor-pointer transition-colors last:border-0"
+                  >
+                    <td className="px-5 py-3 text-sm font-medium text-[hsl(var(--foreground))] max-w-[200px]">
+                      <span className="truncate block">{c.name}</span>
+                    </td>
+                    <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
+                      {c.client}
+                    </td>
+                    <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
+                      {c.platform}
+                    </td>
+                    <td className="px-5 py-3 text-sm text-[hsl(var(--muted-foreground))] whitespace-nowrap">
+                      {c.due}
+                    </td>
+                    <td className="px-5 py-3">
+                      <StatusBadge status={c.status} />
+                    </td>
+                    <td className="px-5 py-3">
+                      <div
+                        className={cn(
+                          "w-7 h-7 rounded-full text-white text-[10px] font-semibold flex items-center justify-center",
+                          c.ownerBg
+                        )}
+                      >
+                        {c.ownerInitials}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Recent Clients */}
@@ -662,41 +825,47 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div className="divide-y divide-[hsl(var(--border)/0.5)]">
-            {MOCK_CLIENTS.map((client) => (
-              <div
-                key={client.id}
-                onClick={() => router.push(`/clients/${client.id}`)}
-                className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 cursor-pointer"
-              >
+          {clients.length === 0 ? (
+            <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-6">
+              No clients yet.
+            </p>
+          ) : (
+            <div className="divide-y divide-[hsl(var(--border)/0.5)]">
+              {clients.map((client) => (
                 <div
-                  className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
-                    client.iconBg,
-                    client.iconColor
-                  )}
+                  key={client.id}
+                  onClick={() => router.push(`/clients/${client.id}`)}
+                  className="flex items-center gap-3 py-3 first:pt-0 last:pb-0 cursor-pointer"
                 >
-                  <client.icon size={16} />
+                  <div
+                    className={cn(
+                      "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                      client.iconBg,
+                      client.iconColor
+                    )}
+                  >
+                    <client.icon size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[hsl(var(--foreground))] truncate">
+                      {client.name}
+                    </p>
+                    <p className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {client.industry}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-semibold text-[hsl(var(--foreground))]">
+                      {client.campaigns}
+                    </p>
+                    <p className="text-[9px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                      Campaigns
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[hsl(var(--foreground))] truncate">
-                    {client.name}
-                  </p>
-                  <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                    {client.industry}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-[hsl(var(--foreground))]">
-                    {client.campaigns}
-                  </p>
-                  <p className="text-[9px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-                    Campaigns
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -708,40 +877,58 @@ export default function DashboardPage() {
               Campaign Health
             </p>
             <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">
-              Distribution across 10 campaigns
+              Distribution across {health.total} campaign{health.total !== 1 ? "s" : ""}
             </p>
           </div>
-          <span className="text-2xl font-bold text-[hsl(var(--foreground))]">10</span>
+          <span className="text-2xl font-bold text-[hsl(var(--foreground))]">
+            {health.total}
+          </span>
         </div>
 
-        {/* Segmented bar */}
-        <div className="flex w-full h-2 rounded-full overflow-hidden mt-4 gap-px">
-          {HEALTH_LEGEND.map((item) => (
-            <div key={item.label} className={cn(item.flex, item.bar)} />
-          ))}
-        </div>
-
-        {/* Legend */}
-        <div className="grid grid-cols-5 gap-6 mt-4">
-          {HEALTH_LEGEND.map((item) => (
-            <div key={item.label} className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className={cn("w-2.5 h-2.5 rounded-full shrink-0", item.dot)} />
-                <span className="text-sm text-[hsl(var(--muted-foreground))]">
-                  {item.label}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-xs text-[hsl(var(--muted-foreground))]">
-                  {item.pct}
-                </span>
-                <span className="text-sm font-semibold text-[hsl(var(--foreground))] ml-2">
-                  {item.count}
-                </span>
-              </div>
+        {health.total === 0 ? (
+          <p className="text-sm text-[hsl(var(--muted-foreground))] mt-4 text-center py-4">
+            No campaigns yet.
+          </p>
+        ) : (
+          <>
+            {/* Segmented bar — flex values driven by real counts */}
+            <div className="flex w-full h-2 rounded-full overflow-hidden mt-4 gap-px">
+              {healthLegend
+                .filter((item) => item.value > 0)
+                .map((item) => (
+                  <div
+                    key={item.label}
+                    className={item.bar}
+                    style={{ flex: item.value }}
+                  />
+                ))}
             </div>
-          ))}
-        </div>
+
+            {/* Legend */}
+            <div className="grid grid-cols-5 gap-6 mt-4">
+              {healthLegend.map((item) => (
+                <div key={item.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={cn("w-2.5 h-2.5 rounded-full shrink-0", item.dot)}
+                    />
+                    <span className="text-sm text-[hsl(var(--muted-foreground))]">
+                      {item.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                      {item.pct}
+                    </span>
+                    <span className="text-sm font-semibold text-[hsl(var(--foreground))] ml-2">
+                      {item.count}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
     </div>

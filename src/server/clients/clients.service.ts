@@ -17,8 +17,8 @@ export async function listClients(workspaceId: string) {
   };
 }
 
-export async function getClient(id: string, workspaceId: string) {
-  const client = await getClientById(id, workspaceId);
+export async function getClient(id: string, clerkUserId: string) {
+  const client = await getClientById(id, clerkUserId);
 
   if (!client) {
     throw new Error("Client not found");
@@ -41,26 +41,26 @@ export async function addClient(
 
 export async function editClient(
   id: string,
-  workspaceId: string,
+  clerkUserId: string,
   data: UpdateClientInput
 ) {
-  const existing = await getClientById(id, workspaceId);
+  const existing = await getClientById(id, clerkUserId);
 
   if (!existing) {
     throw new Error("Client not found");
   }
 
-  const client = await updateClient(id, workspaceId, data);
+  const client = await updateClient(id, existing.workspaceId, data);
   return { client };
 }
 
-export async function removeClient(id: string, workspaceId: string) {
-  const existing = await getClientById(id, workspaceId);
+export async function removeClient(id: string, clerkUserId: string) {
+  const existing = await getClientById(id, clerkUserId);
 
   if (!existing) {
     throw new Error("Client not found");
   }
 
-  await deleteClient(id, workspaceId);
+  await deleteClient(id, existing.workspaceId);
   return { success: true };
 }

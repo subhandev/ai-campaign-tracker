@@ -14,8 +14,8 @@ export async function listCampaigns(workspaceId: string) {
   return { campaigns, total: campaigns.length };
 }
 
-export async function getCampaign(id: string, workspaceId: string) {
-  const campaign = await getCampaignById(id, workspaceId);
+export async function getCampaign(id: string, clerkUserId: string) {
+  const campaign = await getCampaignById(id, clerkUserId);
   if (!campaign) throw new Error("Campaign not found");
   return { campaign };
 }
@@ -28,15 +28,15 @@ export async function addCampaign(data: CreateCampaignInput) {
   return { campaign };
 }
 
-export async function editCampaign(id: string, workspaceId: string, data: UpdateCampaignInput) {
-  const existing = await getCampaignById(id, workspaceId);
+export async function editCampaign(id: string, clerkUserId: string, data: UpdateCampaignInput) {
+  const existing = await getCampaignById(id, clerkUserId);
   if (!existing) throw new Error("Campaign not found");
   const campaign = await updateCampaign(id, data);
   return { campaign };
 }
 
-export async function removeCampaign(id: string, workspaceId: string) {
-  const existing = await getCampaignById(id, workspaceId);
+export async function removeCampaign(id: string, clerkUserId: string) {
+  const existing = await getCampaignById(id, clerkUserId);
   if (!existing) throw new Error("Campaign not found");
   await deleteCampaign(id);
   return { success: true };

@@ -15,9 +15,9 @@ export async function getClientsByWorkspace(workspaceId: string) {
   });
 }
 
-export async function getClientById(id: string, workspaceId: string) {
+export async function getClientById(id: string, clerkUserId: string) {
   return prisma.client.findFirst({
-    where: { id, workspaceId },
+    where: { id, workspace: { user: { clerkUserId } } },
     include: {
       campaigns: {
         orderBy: { createdAt: "desc" },

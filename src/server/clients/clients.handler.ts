@@ -10,9 +10,9 @@ import {
 } from "@/server/clients/clients.service";
 import { CreateClientInput, UpdateClientInput } from "@/features/clients/types";
 
-export async function handleListClients(workspaceId: string) {
+export async function handleListClients(clerkUserId: string) {
   try {
-    const data = await listClients(workspaceId);
+    const data = await listClients(clerkUserId);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -22,9 +22,9 @@ export async function handleListClients(workspaceId: string) {
   }
 }
 
-export async function handleGetClient(id: string, workspaceId: string) {
+export async function handleGetClient(id: string, clerkUserId: string) {
   try {
-    const data = await getClient(id, workspaceId);
+    const data = await getClient(id, clerkUserId);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.message === "Client not found") {
@@ -39,11 +39,11 @@ export async function handleGetClient(id: string, workspaceId: string) {
 
 export async function handleCreateClient(
   req: NextRequest,
-  workspaceId: string
+  clerkUserId: string
 ) {
   try {
     const body: CreateClientInput = await req.json();
-    const data = await addClient(workspaceId, body);
+    const data = await addClient(clerkUserId, body);
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     if (
@@ -65,11 +65,11 @@ export async function handleCreateClient(
 export async function handleUpdateClient(
   req: NextRequest,
   id: string,
-  workspaceId: string
+  clerkUserId: string
 ) {
   try {
     const body: UpdateClientInput = await req.json();
-    const data = await editClient(id, workspaceId, body);
+    const data = await editClient(id, clerkUserId, body);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.message === "Client not found") {
@@ -82,9 +82,9 @@ export async function handleUpdateClient(
   }
 }
 
-export async function handleDeleteClient(id: string, workspaceId: string) {
+export async function handleDeleteClient(id: string, clerkUserId: string) {
   try {
-    const data = await removeClient(id, workspaceId);
+    const data = await removeClient(id, clerkUserId);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.message === "Client not found") {

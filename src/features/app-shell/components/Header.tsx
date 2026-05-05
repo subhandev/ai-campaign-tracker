@@ -46,15 +46,7 @@ export function Header() {
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => router.push("/campaigns/new")}
-          className="h-9 px-4 rounded-lg bg-gradient-brand text-white text-sm flex items-center gap-1.5"
-        >
-          <Plus size={14} />
-          New Campaign
-        </button>
-
+      <div className="flex items-center gap-2">        
         <button className="w-8 h-8 flex items-center justify-center">
           <CircleHelp size={16} />
         </button>

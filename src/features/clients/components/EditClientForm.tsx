@@ -92,16 +92,6 @@ export function EditClientForm({
 
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm p-6 space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Edit Client</h2>
-        <button
-          onClick={onCancel}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Name */}
         <div className="space-y-2">
